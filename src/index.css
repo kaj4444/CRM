@@ -230,90 +230,150 @@ tr:hover td { background: #fafaf8; cursor: pointer; }
 .loading { display: flex; align-items: center; justify-content: center; height: 200px; color: #aaa; font-size: 14px; }
 
 /* RESPONSIVE */
-@media (max-width: 768px) {
-  .sidebar { display: none; }
-  .main { margin-left: 0; padding: 16px; }
-  .metrics { grid-template-columns: repeat(2, 1fr); }
-}
+/* mobile handled below */
+
 
 /* ─── MOBILE RESPONSIVE ─────────────────────────────────────────────── */
-@media (max-width: 768px) {
-  .sidebar { display: none; }
-  .main { margin-left: 0; padding: 12px; }
-  .metrics { grid-template-columns: repeat(2, 1fr); gap:8px; }
-  .kanban { gap: 8px; }
-  .kanban-col { min-width: 160px; max-width: 180px; }
-  .form-grid { grid-template-columns: 1fr; }
-  .modal { max-width: 100% !important; margin: 0 8px; }
-  .modal-overlay { padding: 8px; align-items: flex-end; }
-  .toolbar { gap: 6px; }
-  .toolbar input { width: 120px !important; }
-  table { font-size: 12px; }
-  th, td { padding: 8px 8px; }
-}
 
-/* Mobile top nav bar */
+/* Mobile topbar - vždy skrytý na desktopu */
+.mobile-topbar { display: none; }
+.mobile-drawer { display: none; }
+
+/* Mobile topbar styling */
 .mobile-topbar {
-  display: none;
   position: fixed;
   top: 0; left: 0; right: 0;
-  height: 52px;
+  height: 56px;
   background: #fff;
   border-bottom: 0.5px solid #e5e5e5;
   align-items: center;
   justify-content: space-between;
   padding: 0 16px;
   z-index: 200;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
-.mobile-topbar .logo { font-size: 15px; font-weight: 600; color: #534AB7; }
+.mobile-topbar .mob-logo { font-size: 16px; font-weight: 600; color: #534AB7; }
+.mobile-topbar .mob-tab { font-size: 13px; color: #888; margin-left: 8px; }
+
 .hamburger-btn {
-  width: 36px; height: 36px;
+  width: 40px; height: 40px;
   border: 0.5px solid #e0e0e0;
-  border-radius: 8px;
+  border-radius: 10px;
   background: #fff;
   cursor: pointer;
   display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 4px;
+  align-items: center; justify-content: center; gap: 5px;
+  padding: 0;
 }
 .hamburger-btn span {
-  display: block; width: 16px; height: 1.5px;
+  display: block; width: 18px; height: 2px;
   background: #534AB7; border-radius: 2px;
+  transition: all 0.2s;
 }
 
 /* Mobile drawer */
 .mobile-drawer {
-  display: none;
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
   z-index: 300;
 }
 .drawer-overlay {
   position: absolute; inset: 0;
-  background: rgba(0,0,0,0.3);
+  background: rgba(0,0,0,0.4);
 }
 .drawer-panel {
   position: absolute;
   top: 0; left: 0; bottom: 0;
-  width: 240px;
+  width: 260px;
   background: #fff;
   display: flex; flex-direction: column;
   overflow-y: auto;
+  box-shadow: 4px 0 20px rgba(0,0,0,0.15);
 }
 .drawer-head {
-  padding: 16px 20px;
+  padding: 20px;
   border-bottom: 0.5px solid #f0f0f0;
   display: flex; justify-content: space-between; align-items: center;
 }
 .drawer-close {
   background: none; border: none;
-  font-size: 20px; cursor: pointer; color: #aaa;
+  font-size: 22px; cursor: pointer; color: #aaa; line-height: 1;
 }
 
 @media (max-width: 768px) {
+  /* Zobraz mobile topbar */
   .mobile-topbar { display: flex; }
   .mobile-drawer { display: block; }
-  .app-layout { padding-top: 52px; }
-  .main { padding-top: 16px; }
-  .page-header h1 { font-size: 16px; }
+
+  /* Sidebar skrytý */
+  .sidebar { display: none !important; }
+
+  /* Main layout */
+  .app-layout { display: block; padding-top: 56px; }
+  .main {
+    margin-left: 0 !important;
+    padding: 12px !important;
+    min-height: calc(100vh - 56px);
+  }
+
+  /* Page header */
+  .page-header { margin-bottom: 12px; }
+  .page-header h1 { font-size: 17px; }
   .page-header p { font-size: 12px; }
+
+  /* Metriky - 2 sloupce na mobilu */
+  .metrics {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+    margin-bottom: 12px !important;
+  }
+  .metric-card { padding: 12px; }
+  .metric-card .val { font-size: 20px; }
+
+  /* Toolbar */
+  .toolbar {
+    gap: 6px !important;
+    margin-bottom: 10px !important;
+  }
+  .toolbar input { width: 130px !important; font-size: 13px; }
+  .toolbar select { font-size: 13px; }
+  .btn { height: 34px; padding: 0 12px; font-size: 13px; }
+
+  /* Kanban - horizontální scroll */
+  .kanban {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 16px;
+  }
+  .kanban-col { min-width: 200px; max-width: 220px; }
+  .kanban-card { padding: 10px; }
+
+  /* Tabulka */
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { font-size: 12px; min-width: 500px; }
+  th, td { padding: 8px 10px; }
+
+  /* Modaly */
+  .modal-overlay {
+    padding: 0 !important;
+    align-items: flex-end !important;
+  }
+  .modal {
+    max-width: 100% !important;
+    width: 100% !important;
+    border-radius: 16px 16px 0 0 !important;
+    max-height: 92vh;
+    overflow-y: auto;
+  }
+  .form-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
+  .modal-body { padding: 16px !important; }
+  .modal-head { padding: 14px 16px !important; }
+  .modal-foot { padding: 12px 16px !important; }
+
+  /* Email šablony */
+  .inner-tabs { flex-wrap: wrap; }
+  .email-card { padding: 14px; }
+
+  /* Login */
+  .login-card { width: 90%; padding: 28px 20px; }
 }

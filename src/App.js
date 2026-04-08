@@ -2644,8 +2644,11 @@ export default function App() {
 
       {/* Mobile top bar */}
       <div className="mobile-topbar">
-        <div className="logo">riscare CRM</div>
-        <button className="hamburger-btn" onClick={() => setDrawerOpen(true)}>
+        <div style={{display:'flex',alignItems:'center',gap:0}}>
+          <span className="mob-logo">riscare</span>
+          <span className="mob-tab"> · {{kanban:'Pipeline',table:'Tabulka',followup:'Follow-up',ukoly:'Úkoly',multiplikatori:'Multiplikátoři',discovery:'Discovery',email:'Emaily',dokumenty:'Dokumenty',strategie:'Strategie',produkty:'Produkty',pruvodce:'Průvodce'}[tab]||tab}</span>
+        </div>
+        <button className="hamburger-btn" onClick={() => setDrawerOpen(true)} aria-label="Menu">
           <span/><span/><span/>
         </button>
       </div>

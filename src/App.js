@@ -2,6 +2,20 @@ import React, { useState, useEffect, useCallback } from 'react'
 import './index.css'
 import { supabase, APP_PASSWORD } from './supabase'
 
+const SLACK_WEBHOOK = process.env.REACT_APP_SLACK_WEBHOOK
+
+const sendSlack = async (text) => {
+  try {
+    await fetch(SLACK_WEBHOOK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
+    })
+  } catch(e) {
+    console.error('Slack error:', e)
+  }
+}
+
 // ─── KONSTANTY ────────────────────────────────────────────────────────────────
 const STAVS = ['Lead','Kontaktováno','Discovery call domluven','Discovery call proběhl',
   'Nabídka odeslána','Vyjednávání','Uzavřeno — vyhráno','Uzavřeno — prohráno','Odloženo']
@@ -688,9 +702,13 @@ export default function App() {
       if (modal && modal.id) {
         const { error } = await supabase.from('leads').update(cleanForm).eq('id', modal.id)
         if (error) { alert('Chyba update: ' + error.message); console.error(error); return }
+        if (modal.stav !== cleanForm.stav) {
+          await sendSlack(`🔄 *Změna stavu leadu*\n*Firma:* ${cleanForm.firma}\n*${modal.stav}* → *${cleanForm.stav}*\n*Vede:* ${cleanForm.vede || '—'}`)
+        }
       } else {
         const { error } = await supabase.from('leads').insert([cleanForm])
         if (error) { alert('Chyba insert: ' + error.message); console.error(error); return }
+        await sendSlack(`🆕 *Nový lead přidán*\n*Firma:* ${cleanForm.firma}\n*Kontakt:* ${cleanForm.osoba || '—'}\n*Produkt:* ${cleanForm.produkt || '—'}\n*Stav:* ${cleanForm.stav}\n*Vede:* ${cleanForm.vede || '—'}`)
       }
       setModal(null)
       setDetail(null)

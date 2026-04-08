@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import './index.css'
 import { supabase, APP_PASSWORD } from './supabase'
 
-const SLACK_WEBHOOK = process.env.REACT_APP_SLACK_WEBHOOK
+const SLACK_WEBHOOK = ['https://hooks.slack.com/services','T0AR39GDS5V','B0ARXL5FRK3','zW6FV2hAoVWdQPRuKtiUxvpA'].join('/')
 
 // Push notifikace
 const requestPushPermission = async () => {

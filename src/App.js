@@ -2425,7 +2425,7 @@ const AiCallBtn = ({ lead }) => {
     setLoading(true)
     setResult(null)
     try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const response = await fetch('/api/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -2490,7 +2490,7 @@ const AiEmailBtn = ({ lead }) => {
     setLoading(true)
     setEmail(null)
     try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const response = await fetch('/api/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

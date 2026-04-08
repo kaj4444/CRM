@@ -385,6 +385,13 @@ const LeadDetail = ({ lead, onEdit, onClose }) => {
           <div style={{display:'flex',gap:6,alignItems:'center',flexWrap:'wrap'}}>
             <button className="btn" onClick={() => onEdit(lead)}>Upravit</button>
             <button className="btn" style={{color:'#534AB7',borderColor:'#534AB7'}} onClick={() => setShowUkolModal(true)}>+ Úkol</button>
+            {lead.email && (
+              <a href={'mailto:'+lead.email+'?subject=riscare — '+encodeURIComponent(lead.firma)}
+                style={{padding:'0 14px',height:34,borderRadius:8,border:'0.5px solid #185FA5',background:'#E6F1FB',color:'#185FA5',fontSize:13,fontWeight:500,textDecoration:'none',display:'inline-flex',alignItems:'center',gap:4,whiteSpace:'nowrap'}}
+                onClick={e=>e.stopPropagation()}>
+                ✉️ Email
+              </a>
+            )}
             <button className="btn" style={{color:'#0F6E56',borderColor:'#0F6E56'}} onClick={() => {
               const start = new Date()
               start.setDate(start.getDate() + 1)
@@ -412,7 +419,7 @@ const LeadDetail = ({ lead, onEdit, onClose }) => {
         </div>
 
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px 24px',padding:'14px 24px',borderBottom:'0.5px solid #f0f0f0',fontSize:13}}>
-          {lead.email && <div><span style={{color:'#888'}}>Email: </span>{lead.email}</div>}
+          {lead.email && <div><span style={{color:'#888'}}>Email: </span><a href={'mailto:'+lead.email} style={{color:'#534AB7',textDecoration:'none',fontWeight:500}}>{lead.email}</a></div>}
           {lead.telefon && <div><span style={{color:'#888'}}>Tel: </span>{lead.telefon}</div>}
           {lead.produkt && <div><span style={{color:'#888'}}>Produkt: </span>{lead.produkt}</div>}
           {lead.cena && <div><span style={{color:'#888'}}>Cena: </span>{Number(lead.cena).toLocaleString('cs')} Kc</div>}
@@ -831,6 +838,7 @@ const TableView = ({ leads, onOpen }) => {
               <tr key={l.id} onClick={() => onOpen(l)}>
                 <td style={{fontWeight:500}}>{l.firma}</td>
                 <td>{l.osoba || '—'}</td>
+                <td>{l.email ? <a href={'mailto:'+l.email} onClick={e=>e.stopPropagation()} style={{color:'#185FA5',textDecoration:'none',fontSize:12}}>✉️ {l.email}</a> : '—'}</td>
                 <td><span className="tag tag-neu">{l.segment}</span></td>
                 <td><ProdTag produkt={l.produkt} /></td>
                 <td><StavBadge stav={l.stav} /></td>
@@ -3297,6 +3305,12 @@ const UkolyView = ({ leads, onLeadChange }) => {
                 <span style={{fontSize:11,color:'#534AB7',background:'#EEEDFE',padding:'1px 7px',borderRadius:10}}>
                   🔗 {lead.firma}
                 </span>
+              )}
+              {lead?.email && (
+                <a href={'mailto:'+lead.email} onClick={e=>e.stopPropagation()}
+                  style={{fontSize:11,color:'#185FA5',background:'#E6F1FB',padding:'1px 7px',borderRadius:10,textDecoration:'none'}}>
+                  ✉️ Email
+                </a>
               )}
               {u.zdroj === 'pruvodce' && (
                 <span style={{fontSize:11,color:'#0F6E56',background:'#E1F5EE',padding:'1px 7px',borderRadius:10}}>

@@ -72,8 +72,11 @@ const EMPTY_LEAD = {
   firma:'', osoba:'', role:'CEO', segment:'Přímý klient',
   email:'', telefon:'', odvetvi:'Energetika', zdroj:'Vlastní síť',
   produkt:'Review NIS2', stav:'Lead', cena:'', prob:'Nízká (0–30 %)',
-  vede:'Karel', followup:'', d1:'', namitka:'', poznamky:''
+  vede:'Karel', followup:'', d1:'', namitka:'', poznamky:'', stitky:''
 }
+
+const STITKY_OPTIONS = ['VIP','Urgentní','Čeká na smlouvu','Warm','Cold','Referral','Enterprise','Priorita']
+const STITKY_COLORS = {'VIP':'#534AB7','Urgentní':'#A32D2D','Čeká na smlouvu':'#854F0B','Warm':'#0F6E56','Cold':'#185FA5','Referral':'#27500A','Enterprise':'#633806','Priorita':'#791F1F'}
 
 const today = () => new Date().toISOString().slice(0,10)
 
@@ -185,6 +188,7 @@ const LeadDetail = ({ lead, onEdit, onClose }) => {
               alert('Úkol vytvořen a propojen s ' + lead.firma)
             }}>+ Úkol</button>
             <AiCallBtn lead={lead} />
+            <AiEmailBtn lead={lead} />
             <button className="close-btn" onClick={onClose}>&times;</button>
           </div>
         </div>
@@ -365,6 +369,26 @@ const LeadModal = ({ lead, onSave, onDelete, onClose }) => {
           </div>
           <div className="form-row"><label>Poznámky z callu</label>
             <textarea {...fi('poznamky')} placeholder="Co říkali, co bolí, co rozhoduje..." />
+          </div>
+          <div className="form-row"><label>Štítky</label>
+            <div style={{display:'flex',gap:6,flexWrap:'wrap',marginTop:4}}>
+              {STITKY_OPTIONS.map(s => {
+                const active = (form.stitky||'').split(',').filter(Boolean).includes(s)
+                const color = STITKY_COLORS[s] || '#534AB7'
+                return (
+                  <button key={s} type="button" onClick={() => {
+                    const curr = (form.stitky||'').split(',').filter(Boolean)
+                    const nove = active ? curr.filter(x=>x!==s) : [...curr,s]
+                    set('stitky', nove.join(','))
+                  }} style={{
+                    padding:'3px 10px',borderRadius:10,fontSize:12,cursor:'pointer',
+                    border:'0.5px solid '+(active?color:'#e0e0e0'),
+                    background:active?color+'18':'#fff',
+                    color:active?color:'#aaa',fontFamily:'inherit',fontWeight:active?500:400
+                  }}>{s}</button>
+                )
+              })}
+            </div>
           </div>
         </div>
         <div className="modal-foot">
@@ -2199,6 +2223,82 @@ const StrategickyPlan = () => {
   )
 }
 
+// ─── GLOBÁLNÍ VYHLEDÁVÁNÍ ────────────────────────────────────────────────────
+const GlobalSearch = ({ leads, onOpen }) => {
+  const [q, setQ] = useState('')
+  const [open, setOpen] = useState(false)
+
+  const results = q.length > 1 ? leads.filter(l =>
+    l.firma?.toLowerCase().includes(q.toLowerCase()) ||
+    l.osoba?.toLowerCase().includes(q.toLowerCase()) ||
+    l.email?.toLowerCase().includes(q.toLowerCase()) ||
+    l.poznamky?.toLowerCase().includes(q.toLowerCase())
+  ).slice(0, 8) : []
+
+  return (
+    <div style={{position:'relative',marginBottom:16}}>
+      <div style={{position:'relative'}}>
+        <input
+          value={q}
+          onChange={e => { setQ(e.target.value); setOpen(true) }}
+          onFocus={() => setOpen(true)}
+          onBlur={() => setTimeout(() => setOpen(false), 200)}
+          placeholder="🔍 Hledat leady, firmy, emaily..."
+          style={{
+            width:'100%', height:40, padding:'0 14px',
+            border:'0.5px solid ' + (q ? '#534AB7' : '#ddd'),
+            borderRadius:10, fontSize:14, fontFamily:'inherit',
+            background:'#fff', color:'#1a1a1a',
+            outline:'none', transition:'border-color 0.15s'
+          }}
+        />
+        {q && (
+          <button onClick={() => { setQ(''); setOpen(false) }}
+            style={{position:'absolute',right:12,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',color:'#aaa',cursor:'pointer',fontSize:16}}>
+            ×
+          </button>
+        )}
+      </div>
+      {open && results.length > 0 && (
+        <div style={{
+          position:'absolute', top:'100%', left:0, right:0, zIndex:100,
+          background:'#fff', border:'0.5px solid #e0e0e0', borderRadius:10,
+          boxShadow:'0 8px 24px rgba(0,0,0,0.1)', marginTop:4, overflow:'hidden'
+        }}>
+          {results.map(l => (
+            <div key={l.id} onClick={() => { onOpen(l); setQ(''); setOpen(false) }}
+              style={{
+                padding:'10px 16px', cursor:'pointer', borderBottom:'0.5px solid #f5f5f3',
+                display:'flex', alignItems:'center', gap:12
+              }}
+              onMouseEnter={e => e.currentTarget.style.background='#fafaf8'}
+              onMouseLeave={e => e.currentTarget.style.background='#fff'}
+            >
+              <div style={{width:32,height:32,borderRadius:8,background:'#EEEDFE',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:600,color:'#534AB7',flexShrink:0}}>
+                {l.firma.slice(0,2).toUpperCase()}
+              </div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontSize:13,fontWeight:500,color:'#1a1a1a'}}>{l.firma}</div>
+                <div style={{fontSize:11,color:'#aaa',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                  {l.osoba} · {l.stav} · {l.produkt}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      {open && q.length > 1 && results.length === 0 && (
+        <div style={{
+          position:'absolute', top:'100%', left:0, right:0, zIndex:100,
+          background:'#fff', border:'0.5px solid #e0e0e0', borderRadius:10,
+          padding:'16px', textAlign:'center', color:'#aaa', fontSize:13,
+          boxShadow:'0 8px 24px rgba(0,0,0,0.1)', marginTop:4
+        }}>Žádné výsledky pro "{q}"</div>
+      )}
+    </div>
+  )
+}
+
 // ─── AI ASISTENT PRO CALL ────────────────────────────────────────────────────
 const AiCallBtn = ({ lead }) => {
   const [loading, setLoading] = useState(false)
@@ -2257,6 +2357,86 @@ Buď stručný, každý bod max 2 řádky.`
           <div style={{fontSize:11,color:'#1D9E75',fontWeight:600,marginBottom:8,textTransform:'uppercase'}}>AI příprava na call</div>
           {result}
           <button onClick={()=>setResult(null)} style={{display:'block',marginTop:10,background:'none',border:'none',color:'#1D9E75',fontSize:12,cursor:'pointer',padding:0}}>Zavřít</button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── AI FOLLOW-UP EMAIL ──────────────────────────────────────────────────────
+const AiEmailBtn = ({ lead }) => {
+  const [loading, setLoading] = useState(false)
+  const [email, setEmail] = useState(null)
+  const [copied, setCopied] = useState(false)
+
+  const generate = async () => {
+    setLoading(true)
+    setEmail(null)
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1000,
+          messages: [{
+            role: 'user',
+            content: `Napiš personalizovaný follow-up email po discovery callu. Email musí být v češtině, neformální, přirozený — ne robotický. Max 150 slov.
+
+Firma: ${lead.firma}
+Kontakt: ${lead.osoba || 'kolego'}, role: ${lead.role || ''}
+Produkt: ${lead.produkt || 'riscare Review NIS2'}
+Cena: ${lead.cena ? lead.cena.toLocaleString('cs') + ' Kč' : '36 000 Kč'}
+Stav: ${lead.stav || ''}
+Poznámky z callu: ${lead.poznamky || 'žádné'}
+Hlavní námitka: ${lead.namitka || 'žádná'}
+
+Struktura emailu:
+- Předmět (1 řádek)
+- Prázdný řádek
+- Tělo emailu (přirozené, personalizované podle poznámek)
+- Podpis: Karel Petros | Talkey a.s. | riscare
+
+Začni přímo předmětem bez jakéhokoliv úvodu.`
+          }]
+        })
+      })
+      const data = await response.json()
+      const text = data.content?.find(c=>c.type==='text')?.text || 'Chyba při generování'
+      setEmail(text)
+    } catch(e) {
+      setEmail('Chyba: ' + e.message)
+    }
+    setLoading(false)
+  }
+
+  const copy = () => {
+    navigator.clipboard.writeText(email)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div style={{marginTop:8}}>
+      <button className="btn" style={{color:'#854F0B',borderColor:'#854F0B',background:email?'#FAEEDA':'#fff'}}
+        onClick={generate} disabled={loading}>
+        {loading ? '⏳ Generuji...' : '✉️ AI follow-up email'}
+      </button>
+      {email && (
+        <div style={{marginTop:12,padding:'14px 16px',background:'#FAEEDA',borderRadius:10,border:'0.5px solid #FAC775'}}>
+          <div style={{fontSize:11,color:'#854F0B',fontWeight:600,marginBottom:8,textTransform:'uppercase'}}>Vygenerovaný follow-up email</div>
+          <div style={{fontSize:13,color:'#333',lineHeight:1.7,whiteSpace:'pre-wrap',fontFamily:'inherit'}}>{email}</div>
+          <div style={{display:'flex',gap:8,marginTop:12}}>
+            <button onClick={copy} style={{padding:'6px 14px',borderRadius:8,border:'0.5px solid #854F0B',background:'#fff',color:'#854F0B',fontSize:12,cursor:'pointer',fontFamily:'inherit',fontWeight:500}}>
+              {copied ? '✓ Zkopírováno!' : 'Kopírovat'}
+            </button>
+            <button onClick={generate} style={{padding:'6px 14px',borderRadius:8,border:'0.5px solid #ddd',background:'#fff',color:'#888',fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>
+              Přegenerovat
+            </button>
+            <button onClick={()=>setEmail(null)} style={{padding:'6px 14px',borderRadius:8,border:'none',background:'none',color:'#bbb',fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>
+              Zavřít
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -3168,6 +3348,7 @@ export default function App() {
 
         {['kanban','table','followup','multiplikatori'].includes(tab) && (
           <>
+            <GlobalSearch leads={leads} onOpen={setDetail} />
             <div className="metrics">
               <div className="metric-card"><div className="label">Aktivní leady</div><div className="val">{active.length}</div><div className="sub">v pipeline</div></div>
               <div className="metric-card"><div className="label">Uzavřeno</div><div className="val">{won.length}</div><div className="sub">vyhráno</div></div>
@@ -3189,6 +3370,22 @@ export default function App() {
                 {['Karel','Radim','Aleš'].map(o=><option key={o}>{o}</option>)}
               </select>
               <button className="btn accent" onClick={() => setModal('new')}>+ Nový lead</button>
+        <button className="btn" onClick={() => {
+          const header = ['Firma','Osoba','Role','Segment','Email','Telefon','Odvětví','Zdroj','Produkt','Stav','Cena','Pravděpodobnost','Vede','Follow-up','Poznámky']
+          const rows = filtered.map(l => [
+            l.firma, l.osoba, l.role, l.segment, l.email, l.telefon,
+            l.odvetvi, l.zdroj, l.produkt, l.stav, l.cena, l.prob,
+            l.vede, l.followup, (l.poznamky||'').replace(/
+/g,' ')
+          ])
+          const csv = [header, ...rows].map(r => r.map(v => '"'+(v||'')+'"').join(',')).join('
+')
+          const blob = new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8'})
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url; a.download = 'riscare-pipeline-'+new Date().toISOString().slice(0,10)+'.csv'
+          a.click(); URL.revokeObjectURL(url)
+        }}>⬇ Export CSV</button>
             </div>
           </>
         )}

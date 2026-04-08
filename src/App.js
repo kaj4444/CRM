@@ -660,82 +660,468 @@ const DiscoveryScript = () => {
 }
 
 // ─── EMAIL TEMPLATE ───────────────────────────────────────────────────────────
-const emailTemplates = [
-  {
-    label:'Standardní follow-up',
-    subject:'Shrnutí našeho hovoru + návrh dalšího kroku — [Název firmy]',
-    body:`Ahoj [Jméno],
+const PRODUKTY = ['Review NIS2','Check DORA','Program NIS2','Program DORA','Lorenc NIS2','Lorenc DORA','Kyber.testy']
+const FAZE = ['První kontakt','Po discovery callu','Follow-up','Uzavření']
 
-díky za dnešní rozhovor — oceňuji tvůj čas a otevřenost.
+const emailTemplates = {
+  'Review NIS2': {
+    'První kontakt': {
+      subject: 'NIS2 — víte kde vaše firma stojí?',
+      body: `Ahoj [Jméno],
 
-Jak jsem slíbil, posílám shrnutí toho co jsme řešili a konkrétní návrh jak pokračovat.
+dostalo se ke mně že se pohybuješ v [odvětví] — a proto ti píšu.
 
-Co jsme si řekli
+Od listopadu 2025 platí nový zákon o kybernetické bezpečnosti. S velkou pravděpodobností se týká i vaší firmy. Osobní odpovědnost managementu, pokuty až 10 mil. EUR.
 
-Na základě našeho hovoru vidím u [Název firmy] tuto situaci:
-• [Odvětví a velikost — např. "Působíte v logistice, přibližně 120 zaměstnanců"]
-• [Co z toho plyne — např. "S vysokou pravděpodobností spadáte pod NIS2"]
-• [Co víte nebo nevíte — např. "Dosud jste neměli formální analýzu rizik"]
-• [Hlavní zájem — např. "Chcete vědět co přesně musíte udělat a v jakém pořadí"]
+Spolupracuji se společností Talkey — jejich produkt riscare Review NIS2 je jednorázová analýza kde přesně stojíte, s konkrétním akčním plánem co dělat dál. Výstup do 2 týdnů, žádný závazek.
 
-Navrhovaný první krok
+Hodí se 20 minut call kde to posoudíme?
 
-Doporučuji začít s riscare Review NIS2 — jednorázová analýza vašeho aktuálního stavu vůči požadavkům zákona.
-
-Co dostanete:
-• Vstupní videokonzultace — projdeme váš stav pomocí checklistu NIS2
-• Výstupní zpráva — hodnocení každého požadavku (splněno / nesplněno / kritická mezera)
-• Akční plán — konkrétní kroky v doporučeném pořadí
-• Výstupní videokonzultace — projdeme výsledky a navedeme vás na nejbližší kroky
-
-Časový rámec: výstup do 2 týdnů od zahájení.
-Cena: 36 000 Kč bez DPH (standardní cena 45 000 Kč, partnerská sleva 20 %).
-Závazek: žádný — Review je jednorázové.
-
-Jak pokračovat
-
-Stačí odpovědět na tento email nebo mi zavolat. Pošlu ti jednoduchou objednávku a domluvíme vstupní konzultaci — jsme schopni začít do týdne.
-
-S pozdravem
 Karel Petros
 Key Account Manager | Talkey a.s. | riscare`,
+    },
+    'Po discovery callu': {
+      subject: 'Shrnutí našeho hovoru — riscare Review NIS2',
+      body: `Ahoj [Jméno],
+
+díky za dnešní rozhovor. Jak jsem slíbil, posílám shrnutí.
+
+Na základě toho co jsme si řekli:
+• [Firma] s vysokou pravděpodobností spadá pod NIS2
+• [Konkrétní mezera z callu — doplň]
+• [Konkrétní mezera z callu — doplň]
+
+Navrhovaný první krok: riscare Review NIS2
+
+Co dostanete:
+• Vstupní videokonzultace — projdeme váš stav vůči NIS2
+• Výstupní zpráva — co splňujete, co chybí, co je kritické
+• Akční plán — konkrétní kroky v doporučeném pořadí
+• Výstupní videokonzultace — projdeme výsledky spolu
+
+Cena: 36 000 Kč bez DPH (partnerská sleva 20 % ze standardních 45 000 Kč).
+Závazek: žádný.
+
+Stačí odpovědět na tento email — jsme schopni začít do týdne.
+
+Karel Petros
+Key Account Manager | Talkey a.s. | riscare`,
+    },
+    'Follow-up': {
+      subject: 'Re: riscare Review NIS2 — [Název firmy]',
+      body: `Ahoj [Jméno],
+
+ozývám se jestli jsi měl čas se na to podívat.
+
+Neptám se kvůli tlaku — pokud je nějaká otázka nebo nejasnost, rád to dořeším.
+
+Pokud timing není teď správný, dej mi vědět kdy by se to hodilo víc.
+
+Jen pro připomenutí — riscare Review NIS2 je jednorázová analýza za 36 000 Kč bez DPH. Výstup do 2 týdnů, žádný závazek.
+
+Karel Petros
+Key Account Manager | Talkey a.s. | riscare`,
+    },
+    'Uzavření': {
+      subject: 'Objednávka — riscare Review NIS2',
+      body: `Ahoj [Jméno],
+
+výborně, jsem rád že jdeme do toho.
+
+V příloze je objednávkový formulář pro riscare Review NIS2. Po potvrzení a úhradě zálohy domluvíme vstupní videokonzultaci — jsme schopni začít do týdne.
+
+Shrnutí:
+• Produkt: riscare Review NIS2
+• Cena: 36 000 Kč bez DPH
+• Výstup: do 2 týdnů od zahájení
+
+Těším se na spolupráci.
+
+Karel Petros
+Key Account Manager | Talkey a.s. | riscare`,
+    },
   },
-  {
-    label:'Varianta — cena jako námitka',
-    subject:'Re: riscare Review — [Název firmy]',
-    body:`Ahoj [Jméno],
+  'Check DORA': {
+    'První kontakt': {
+      subject: 'DORA — jak na tom jste po lednu 2025?',
+      body: `Ahoj [Jméno],
 
-rozumím že 36 000 Kč je rozhodnutí které chce schválení.
+DORA platí od 17. ledna 2025. Finanční sektor je pod dohledem CNB a cas na "jeste to doladime" se krati.
 
-Pro usnadnění — Review je jednorázový náklad bez dalšího závazku. Jeho výstupem je přesný přehled co musíte udělat. Alternativa je postupovat naslepo a riskovat investice do věcí které nepotřebujete — nebo přehlédnout co je kritické.
+Spolupracuji se společností Talkey — riscare Check DORA je hloubková analýza vaší připravenosti vůči DORA a RTS požadavkům. Výstup je zpráva plus akční plán přesně pro váš typ instituce.
 
-Pokud by pomohlo projít to osobně s Radimem Hofrichterem, naším technickým ředitelem — rád to domluvím.
+Hodíte se na krátký call?
 
-Jde mi o to abyste měli jistotu že to dává smysl, ne o rychlé uzavření.
+Karel Petros
+Key Account Manager | Talkey a.s. | riscare`,
+    },
+    'Po discovery callu': {
+      subject: 'Shrnutí našeho hovoru — riscare Check DORA',
+      body: `Ahoj [Jméno],
 
-Karel Petros | Talkey a.s. | riscare`,
+díky za dnešní rozhovor. Posílám shrnutí a návrh dalšího kroku.
+
+Na základě toho co jsme si řekli:
+• [Typ instituce] spadá plně pod DORA od ledna 2025
+• [Konkrétní oblast k řešení — doplň]
+• [Konkrétní oblast k řešení — doplň]
+
+Navrhovaný první krok: riscare Check DORA
+
+Co dostanete:
+• Screening vůči checklistu DORA a RTS
+• Projdeme vaši stávající dokumentaci
+• Výstupní zpráva s hodnocením požadavků
+• Akční plán doporučení
+• Výstupní videokonzultace
+
+7 klíčových oblastí: Governance, Rizení ICT rizik, Incident management, Testování, Business Continuity, Rízení tretích stran, Threat intelligence.
+
+Cena: 75 000 Kc / 45 000 Kc bez DPH (zjednodušený systém rízení rizika).
+
+Karel Petros
+Key Account Manager | Talkey a.s. | riscare`,
+    },
+    'Follow-up': {
+      subject: 'Re: riscare Check DORA — [Název instituce]',
+      body: `Ahoj [Jméno],
+
+ozývám se jestli jsi měl čas se na nabídku podívat.
+
+Pokud by pomohlo projít to osobně s Radimem Hofrichterem, naším technickým ředitelem, rád to domluvím.
+
+Dej mi vědět.
+
+Karel Petros
+Key Account Manager | Talkey a.s. | riscare`,
+    },
+    'Uzavření': {
+      subject: 'Objednávka — riscare Check DORA',
+      body: `Ahoj [Jméno],
+
+výborně. V příloze je objednávka pro riscare Check DORA.
+
+Shrnutí:
+• Produkt: riscare Check DORA
+• Cena: [75 000 / 45 000] Kc bez DPH
+• Výstup: zpráva plus akční plán
+
+Po potvrzení domluvíme vstupní videokonzultaci.
+
+Karel Petros
+Key Account Manager | Talkey a.s. | riscare`,
+    },
   },
-  {
-    label:'Follow-up po 5 dnech bez odpovědi',
-    subject:'Re: Shrnutí našeho hovoru — [Název firmy]',
-    body:`Ahoj [Jméno],
+  'Program NIS2': {
+    'První kontakt': {
+      subject: 'NIS2 compliance bez vlastního CISO — je to možné',
+      body: `Ahoj [Jméno],
 
-jen krátce — ozývám se jestli jsi měl čas se na to podívat.
+většina firem které musí plnit NIS2 nemá interního specialistu. A zákon přesto vyžaduje obsazení konkrétních rolí — manažer KB, manažer rizik, incident manager.
 
-Neptám se kvůli tlaku. Ptám se protože pokud je tam otázka nebo nejasnost na kterou jsem neodpověděl, rád to dořeším.
+Spolupracuji se společností Talkey — riscare Program NIS2 řeší přesně toto. All-inclusive outsourcing všech zákonem požadovaných rolí. Jedna smlouva, jeden partner.
 
-Pokud timing není teď správný — v pořádku. Dej mi vědět kdy by se to hodilo víc.
+Hodí se na 20 minut call?
 
-Karel`,
+Karel Petros
+Key Account Manager | Talkey a.s. | riscare`,
+    },
+    'Po discovery callu': {
+      subject: 'Shrnutí hovoru — riscare Program NIS2',
+      body: `Ahoj [Jméno],
+
+díky za dnešní rozhovor. Posílám přehled programu.
+
+Co je součástí riscare Program NIS2:
+• CISO as a Service — odborné vedení bez vlastního specialisty
+• Rízení ICT rizik — risk analýza, BIA, registr aktiv
+• Rízení IKT dodavatelů — politika, hodnocení rizik, smluvní požadavky
+• Incident management — monitoring, detekce, hlášení
+• Penetrační testy — každoroční test plus zpráva
+• Školení zaměstnanců — praktická školení plus phishing simulace
+• Každoroční interní audit
+
+Výsledek: plná NIS2 compliance bez vlastního bezpečnostního týmu.
+
+Rád připravím cenovou nabídku na míru — stačí mi říct velikost firmy a odvětví.
+
+Karel Petros
+Key Account Manager | Talkey a.s. | riscare`,
+    },
+    'Follow-up': {
+      subject: 'Re: riscare Program NIS2 — [Název firmy]',
+      body: `Ahoj [Jméno],
+
+ozývám se po naší schůzce — jestli jsi měl čas to probrat interně.
+
+Pokud potřebuješ více informací nebo prezentaci pro vedení, rád to připravím.
+
+Karel Petros
+Key Account Manager | Talkey a.s. | riscare`,
+    },
+    'Uzavření': {
+      subject: 'Smlouva — riscare Program NIS2',
+      body: `Ahoj [Jméno],
+
+výborně, jsem rád že jdeme do spolupráce.
+
+V příloze najdeš návrh smlouvy pro riscare Program NIS2. Prosím o kontrolu a případné připomínky.
+
+Po podpisu naplánujeme kickoff — ustavení systému rízení KB, definice rolí a první kroky.
+
+Těším se na spolupráci.
+
+Karel Petros
+Key Account Manager | Talkey a.s. | riscare`,
+    },
   },
-]
+  'Program DORA': {
+    'První kontakt': {
+      subject: 'DORA Program — outsourcing všeho co zákon vyžaduje',
+      body: `Ahoj [Jméno],
+
+DORA platí od ledna 2025 a CNB začíná dozor zpřísňovat. Pro finanční instituce to znamená konkrétní povinnosti — CISO, risk manager, incident manager, penetrační testy, reporting vůči CNB.
+
+Talkey má produkt riscare Program DORA — pokrývá všechny tyto povinnosti formou outsourcingu. Jedna smlouva místo 3-4 specialistů.
+
+Hodí se na krátký call?
+
+Karel Petros
+Key Account Manager | Talkey a.s. | riscare`,
+    },
+    'Po discovery callu': {
+      subject: 'Shrnutí hovoru — riscare Program DORA',
+      body: `Ahoj [Jméno],
+
+díky za dnešní rozhovor. Posílám přehled programu.
+
+riscare Program DORA obsahuje:
+• CISO as a Service — vedení systému digitální provozní odolnosti
+• Reporting vůči CNB — registr IKT dodavatelů, incident reporting, registr rizik
+• Rízení ICT rizik — risk analýza, BIA, identifikace aktiv
+• Rízení IKT dodavatelů — politika, hodnocení, smluvní standardy
+• Incident management — monitoring, detekce, hlášení
+• Penetrační testy — dle TIBER-EU metodiky
+• Testy plánů reakce a obnovy — RTO/RPO parametry
+• Školení zaměstnanců
+
+Připravím cenovou nabídku na míru — potřebuji vědět velikost instituce a aktuální stav implementace.
+
+Karel Petros
+Key Account Manager | Talkey a.s. | riscare`,
+    },
+    'Follow-up': {
+      subject: 'Re: riscare Program DORA — [Název instituce]',
+      body: `Ahoj [Jméno],
+
+ozývám se po naší schůzce.
+
+Pokud by pomohlo sejít se osobně s Radimem a Alešem — rádi přijedeme nebo domluvíme Teams.
+
+Dej mi vědět jak to u vás vypadá.
+
+Karel Petros
+Key Account Manager | Talkey a.s. | riscare`,
+    },
+    'Uzavření': {
+      subject: 'Smlouva — riscare Program DORA',
+      body: `Ahoj [Jméno],
+
+výborně. V příloze je návrh smlouvy pro riscare Program DORA.
+
+Po podpisu domluvíme kickoff — audit stávajícího stavu, ustavení rolí a nastavení reportingových procesů vůči CNB.
+
+Těším se na spolupráci.
+
+Karel Petros
+Key Account Manager | Talkey a.s. | riscare`,
+    },
+  },
+  'Lorenc NIS2': {
+    'První kontakt': {
+      subject: 'NIS2 mentoring — odborné vedení bez plného outsourcingu',
+      body: `Ahoj [Jméno],
+
+pokud chce vaše firma zvládnout NIS2 vlastními silami ale potřebuje odborné vedení — máme přesně to pravé.
+
+riscare Lorenc NIS2 je mentoring od specialistů Talkey. Vy implementujete, my vás vedeme — pravidelné konzultace, odpovědi na konkrétní otázky, review dokumentace.
+
+Levnější než plný outsourcing, efektivnější než jít do toho naslepo.
+
+Hodí se na krátký call?
+
+Karel Petros
+Key Account Manager | Talkey a.s. | riscare`,
+    },
+    'Po discovery callu': {
+      subject: 'Shrnutí hovoru — riscare Lorenc NIS2',
+      body: `Ahoj [Jméno],
+
+díky za dnešní rozhovor. Lorenc NIS2 je ideální pokud:
+• Máte interní kapacitu na implementaci ale chybí expertíza
+• Chcete mít kontrolu nad procesem ale potřebujete odborný dohled
+• Plný outsourcing je nad rámec aktuálního rozpočtu
+
+Co Lorenc obnáší:
+• Pravidelné konzultační sessions
+• Review vaší dokumentace a procesů
+• Odpovědi na konkrétní otázky při implementaci
+• Dohled nad klíčovými milníky
+
+Rád připravím konkrétní nabídku — stačí mi říct kde v implementaci aktuálně jste.
+
+Karel Petros
+Key Account Manager | Talkey a.s. | riscare`,
+    },
+    'Follow-up': {
+      subject: 'Re: riscare Lorenc NIS2 — [Název firmy]',
+      body: `Ahoj [Jméno],
+
+ozývám se — jestli jsi měl čas to probrat.
+
+Pokud váháte mezi Lorenc a plným Programem, rád to projdeme — pomůžu vám vybrat správný přístup pro vaši situaci.
+
+Karel Petros
+Key Account Manager | Talkey a.s. | riscare`,
+    },
+    'Uzavření': {
+      subject: 'Objednávka — riscare Lorenc NIS2',
+      body: `Ahoj [Jméno],
+
+výborně. V příloze je objednávka pro riscare Lorenc NIS2.
+
+Po potvrzení domluvíme úvodní session — zmapujeme kde stojíte a nastavíme plán konzultací.
+
+Těším se na spolupráci.
+
+Karel Petros
+Key Account Manager | Talkey a.s. | riscare`,
+    },
+  },
+  'Lorenc DORA': {
+    'První kontakt': {
+      subject: 'DORA mentoring — odborné vedení bez plného outsourcingu',
+      body: `Ahoj [Jméno],
+
+DORA je komplexní regulace a mnoho institucí chce implementovat vlastními silami — ale s odborným vedením po boku.
+
+riscare Lorenc DORA je přesně toto. Specialisté Talkey vás provází implementací — pravidelné konzultace, review dokumentace, odpovědi na konkrétní otázky k DORA a RTS.
+
+Hodí se na krátký call?
+
+Karel Petros
+Key Account Manager | Talkey a.s. | riscare`,
+    },
+    'Po discovery callu': {
+      subject: 'Shrnutí hovoru — riscare Lorenc DORA',
+      body: `Ahoj [Jméno],
+
+díky za dnešní rozhovor. Lorenc DORA je vhodný pokud:
+• Máte interní tým který implementuje ale chybí DORA expertíza
+• Potřebujete odborný dohled nad klíčovými oblastmi
+• Chcete jistotu správného směru před auditem CNB
+
+Rád připravím konkrétní nabídku na míru vaší instituci.
+
+Karel Petros
+Key Account Manager | Talkey a.s. | riscare`,
+    },
+    'Follow-up': {
+      subject: 'Re: riscare Lorenc DORA — [Název instituce]',
+      body: `Ahoj [Jméno],
+
+ozývám se po naší schůzce — jak to u vás vypadá?
+
+Pokud potřebuješ více podkladů pro rozhodnutí, rád doplním.
+
+Karel Petros
+Key Account Manager | Talkey a.s. | riscare`,
+    },
+    'Uzavření': {
+      subject: 'Objednávka — riscare Lorenc DORA',
+      body: `Ahoj [Jméno],
+
+výborně. V příloze je objednávka pro riscare Lorenc DORA.
+
+Po potvrzení domluvíme úvodní session — zmapujeme aktuální stav a nastavíme plán konzultací.
+
+Těším se na spolupráci.
+
+Karel Petros
+Key Account Manager | Talkey a.s. | riscare`,
+    },
+  },
+  'Kyber.testy': {
+    'První kontakt': {
+      subject: 'Víte jak odolné jsou vaše systémy vůči útoku?',
+      body: `Ahoj [Jméno],
+
+penetrační test je jediný způsob jak zjistit jestli vaše systémy odolají reálnému útoku — před tím než to zjistí útočník.
+
+Talkey provádí penetrační testy a testy zranitelností podle nejnovějších metodik. Výstup je podrobná zpráva s konkrétními doporučeními. Pro firmy pod NIS2 nebo DORA je to navíc zákonná povinnost.
+
+Hodí se na krátký call?
+
+Karel Petros
+Key Account Manager | Talkey a.s. | riscare`,
+    },
+    'Po discovery callu': {
+      subject: 'Shrnutí hovoru — Kyber.testy',
+      body: `Ahoj [Jméno],
+
+díky za dnešní rozhovor. Na základě toho co jsme si řekli připravím nabídku na:
+
+• [Penetrační test / Test zranitelností / Phishing simulace — doplň]
+• Scope: [systémy / aplikace / síť — doplň]
+• Metodika: [TIBER-EU / OWASP / custom — doplň]
+
+Výstup bude vždy obsahovat:
+• Podrobnou zprávu s výsledky testování
+• Klasifikaci zranitelností (kritické / vysoké / střední / nízké)
+• Konkrétní doporučení pro každou zranitelnost
+• Executive summary pro vedení
+
+Pošlu nabídku do 2 pracovních dnů.
+
+Karel Petros
+Key Account Manager | Talkey a.s. | riscare`,
+    },
+    'Follow-up': {
+      subject: 'Re: Kyber.testy — [Název firmy]',
+      body: `Ahoj [Jméno],
+
+ozývám se — jak to u vás vypadá s timingem pro penetrační test?
+
+Pokud potřebuješ více informací o metodice nebo rozsahu, rád to doplním.
+
+Karel Petros
+Key Account Manager | Talkey a.s. | riscare`,
+    },
+    'Uzavření': {
+      subject: 'Objednávka — Kyber.testy',
+      body: `Ahoj [Jméno],
+
+výborně. V příloze je objednávka a technická specifikace testu.
+
+Prosím o potvrzení rozsahu a preferovaného termínu zahájení — minimálně 2 týdny předem kvůli přípravě.
+
+Těším se na spolupráci.
+
+Karel Petros
+Key Account Manager | Talkey a.s. | riscare`,
+    },
+  },
+}
 
 const EmailTemplates = () => {
-  const [selected, setSelected] = useState(0)
+  const [produkt, setProdukt] = useState('Review NIS2')
+  const [faze, setFaze] = useState('První kontakt')
   const [copied, setCopied] = useState(false)
-  const t = emailTemplates[selected]
+
+  const t = emailTemplates[produkt]?.[faze]
 
   const copy = () => {
+    if (!t) return
     navigator.clipboard.writeText(`Předmět: ${t.subject}\n\n${t.body}`)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
@@ -743,16 +1129,180 @@ const EmailTemplates = () => {
 
   return (
     <div>
-      <div className="inner-tabs">
-        {emailTemplates.map((t,i) => (
-          <button key={i} className={`inner-tab ${selected===i?'active':''}`} onClick={() => setSelected(i)}>{t.label}</button>
+      <div style={{display:'flex',gap:12,marginBottom:20,flexWrap:'wrap',alignItems:'center'}}>
+        <div>
+          <div style={{fontSize:12,color:'#888',marginBottom:6,fontWeight:500}}>Produkt</div>
+          <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
+            {PRODUKTY.map(p => (
+              <button key={p} onClick={() => setProdukt(p)} style={{
+                padding:'5px 12px', borderRadius:8, fontSize:12, cursor:'pointer',
+                border:`0.5px solid ${produkt===p?'#534AB7':'#e0e0e0'}`,
+                background: produkt===p ? '#EEEDFE' : '#fff',
+                color: produkt===p ? '#534AB7' : '#666',
+                fontWeight: produkt===p ? 500 : 400,
+                fontFamily:'inherit'
+              }}>{p}</button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div style={{display:'flex',gap:4,marginBottom:20}}>
+        {FAZE.map(f => (
+          <button key={f} onClick={() => setFaze(f)} style={{
+            padding:'6px 16px', borderRadius:8, fontSize:13, cursor:'pointer',
+            border:`0.5px solid ${faze===f?'#1D9E75':'#e0e0e0'}`,
+            background: faze===f ? '#E1F5EE' : '#fff',
+            color: faze===f ? '#0F6E56' : '#666',
+            fontWeight: faze===f ? 500 : 400,
+            fontFamily:'inherit'
+          }}>{f}</button>
         ))}
       </div>
-      <div className="email-card">
-        <div className="email-subject">Předmět:</div>
-        <div className="email-subject-val">{t.subject}</div>
-        <div className="email-body">{t.body}</div>
-        <button className="copy-btn" onClick={copy}>{copied ? '✓ Zkopírováno!' : 'Kopírovat email'}</button>
+
+      {t ? (
+        <div className="email-card">
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4}}>
+            <div className="email-subject">Předmět:</div>
+            <div style={{fontSize:11,color:'#aaa'}}>{produkt} · {faze}</div>
+          </div>
+          <div className="email-subject-val">{t.subject}</div>
+          <div className="email-body">{t.body}</div>
+          <button className="copy-btn" onClick={copy}>{copied ? '✓ Zkopírováno!' : 'Kopírovat email'}</button>
+        </div>
+      ) : (
+        <div style={{color:'#aaa',fontSize:13,padding:'32px 0',textAlign:'center'}}>Šablona nenalezena</div>
+      )}
+    </div>
+  )
+}
+
+// ─── PDF DOKUMENTY ───────────────────────────────────────────────────────────────
+const PdfDocuments = () => {
+  const [docs, setDocs] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [uploading, setUploading] = useState(false)
+  const [filter, setFilter] = useState('')
+  const [kategorie, setKategorie] = useState('')
+
+  const fetchDocs = async () => {
+    const { data } = await supabase.from('documents').select('*').order('created_at', { ascending: false })
+    setDocs(data || [])
+    setLoading(false)
+  }
+
+  useEffect(() => { fetchDocs() }, [])
+
+  const upload = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    if (file.type !== 'application/pdf') { alert('Pouze PDF soubory'); return }
+    if (file.size > 10 * 1024 * 1024) { alert('Maximální velikost souboru je 10 MB'); return }
+    setUploading(true)
+    const fileName = `${Date.now()}_${file.name}`
+    const { error: uploadError } = await supabase.storage.from('documents').upload(fileName, file)
+    if (uploadError) { alert('Chyba při uploadu: ' + uploadError.message); setUploading(false); return }
+    const { data: urlData } = supabase.storage.from('documents').getPublicUrl(fileName)
+    await supabase.from('documents').insert([{
+      nazev: file.name.replace('.pdf', ''),
+      soubor: fileName,
+      url: urlData.publicUrl,
+      velikost: Math.round(file.size / 1024),
+      kategorie: kategorie || 'Obecné'
+    }])
+    e.target.value = ''
+    setUploading(false)
+    fetchDocs()
+  }
+
+  const deleteDoc = async (doc) => {
+    if (!window.confirm(`Smazat "${doc.nazev}"?`)) return
+    await supabase.storage.from('documents').remove([doc.soubor])
+    await supabase.from('documents').delete().eq('id', doc.id)
+    fetchDocs()
+  }
+
+  const KATEGORIE = ['Factsheet','Nabídka','Smlouva','Prezentace','Obecné']
+  const filtered = docs.filter(d => {
+    if (filter && !d.nazev.toLowerCase().includes(filter.toLowerCase())) return false
+    if (kategorie && d.kategorie !== kategorie) return false
+    return true
+  })
+
+  const katColor = {
+    'Factsheet': {bg:'#E1F5EE',color:'#0F6E56'},
+    'Nabídka': {bg:'#EEEDFE',color:'#534AB7'},
+    'Smlouva': {bg:'#FCEBEB',color:'#791F1F'},
+    'Prezentace': {bg:'#FAEEDA',color:'#854F0B'},
+    'Obecné': {bg:'#f0f0ee',color:'#666'},
+  }
+
+  return (
+    <div>
+      <div style={{display:'flex',gap:8,marginBottom:20,flexWrap:'wrap',alignItems:'center'}}>
+        <input placeholder="Hledat dokument..." value={filter} onChange={e=>setFilter(e.target.value)}
+          style={{height:34,padding:'0 12px',border:'0.5px solid #ddd',borderRadius:8,fontSize:13,width:200,fontFamily:'inherit'}} />
+        <select value={kategorie} onChange={e=>setKategorie(e.target.value)}
+          style={{height:34,padding:'0 12px',border:'0.5px solid #ddd',borderRadius:8,fontSize:13,fontFamily:'inherit',background:'#fff'}}>
+          <option value="">Všechny kategorie</option>
+          {KATEGORIE.map(k=><option key={k}>{k}</option>)}
+        </select>
+        <div style={{marginLeft:'auto',display:'flex',gap:8,alignItems:'center'}}>
+          <select value={kategorie} onChange={e=>setKategorie(e.target.value)}
+            style={{height:34,padding:'0 12px',border:'0.5px solid #ddd',borderRadius:8,fontSize:13,fontFamily:'inherit',background:'#fff'}}>
+            <option value="">Kategorie uploadu...</option>
+            {KATEGORIE.map(k=><option key={k}>{k}</option>)}
+          </select>
+          <label style={{
+            height:34,padding:'0 16px',borderRadius:8,border:'0.5px solid #534AB7',
+            background:'#534AB7',color:'#fff',fontSize:13,cursor:'pointer',
+            display:'flex',alignItems:'center',gap:6,fontWeight:500,whiteSpace:'nowrap'
+          }}>
+            {uploading ? 'Nahrávám...' : '+ Nahrát PDF'}
+            <input type="file" accept=".pdf" onChange={upload} style={{display:'none'}} disabled={uploading} />
+          </label>
+        </div>
+      </div>
+
+      {loading && <div style={{color:'#aaa',fontSize:13,padding:'32px 0',textAlign:'center'}}>Načítám dokumenty...</div>}
+
+      {!loading && !filtered.length && (
+        <div style={{color:'#ccc',fontSize:13,padding:'48px 0',textAlign:'center'}}>
+          <div style={{fontSize:32,marginBottom:12}}>📄</div>
+          <div>Žádné dokumenty — nahraj první PDF</div>
+        </div>
+      )}
+
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))',gap:12}}>
+        {filtered.map(doc => {
+          const kat = katColor[doc.kategorie] || katColor['Obecné']
+          return (
+            <div key={doc.id} style={{
+              background:'#fff',border:'0.5px solid #e8e8e8',borderRadius:10,
+              padding:'16px',display:'flex',flexDirection:'column',gap:10
+            }}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+                <div style={{fontSize:24}}>📄</div>
+                <span style={{fontSize:11,padding:'2px 8px',borderRadius:10,background:kat.bg,color:kat.color}}>{doc.kategorie}</span>
+              </div>
+              <div>
+                <div style={{fontSize:13,fontWeight:500,color:'#1a1a1a',marginBottom:3,lineHeight:1.4}}>{doc.nazev}</div>
+                <div style={{fontSize:11,color:'#aaa'}}>{doc.velikost} KB · {new Date(doc.created_at).toLocaleDateString('cs-CZ')}</div>
+              </div>
+              <div style={{display:'flex',gap:6,marginTop:'auto'}}>
+                <a href={doc.url} target="_blank" rel="noreferrer" style={{
+                  flex:1,padding:'6px 0',borderRadius:8,border:'0.5px solid #534AB7',
+                  background:'#EEEDFE',color:'#534AB7',fontSize:12,textAlign:'center',
+                  textDecoration:'none',fontWeight:500
+                }}>Otevřít</a>
+                <button onClick={() => deleteDoc(doc)} style={{
+                  padding:'6px 10px',borderRadius:8,border:'0.5px solid #A32D2D',
+                  background:'#fff',color:'#A32D2D',fontSize:12,cursor:'pointer',fontFamily:'inherit'
+                }}>Smazat</button>
+              </div>
+            </div>
+          )
+        })}
       </div>
     </div>
   )
@@ -847,6 +1397,7 @@ export default function App() {
     { id:'multiplikatori', icon:'🤝', label:'Multiplikátoři' },
     { id:'discovery', icon:'📞', label:'Discovery script' },
     { id:'email', icon:'✉️', label:'Email šablony' },
+    { id:'dokumenty', icon:'📄', label:'Dokumenty' },
   ]
 
   if (!authed) return (
@@ -888,8 +1439,8 @@ export default function App() {
 
       <div className="main">
         <div className="page-header">
-          <h1>{{kanban:'Pipeline',table:'Všechny leady',followup:'Follow-up dnes',multiplikatori:'Multiplikátoři',discovery:'Discovery call script',email:'Email šablony'}[tab]}</h1>
-          <p>{{kanban:'Vizuální přehled obchodů podle fáze',table:'Kompletní seznam s filtry',followup:'Leady které čekají na tvůj kontakt',multiplikatori:'Partneři a zprostředkovatelé',discovery:'Průvodce pro 30minutový prodejní hovor',email:'Šablony připravené k odeslání'}[tab]}</p>
+          <h1>{{kanban:'Pipeline',table:'Všechny leady',followup:'Follow-up dnes',multiplikatori:'Multiplikátoři',discovery:'Discovery call script',email:'Email šablony',dokumenty:'Dokumenty'}[tab]}</h1>
+          <p>{{kanban:'Vizuální přehled obchodů podle fáze',table:'Kompletní seznam s filtry',followup:'Leady které čekají na tvůj kontakt',multiplikatori:'Partneři a zprostředkovatelé',discovery:'Průvodce pro 30minutový prodejní hovor',email:'Šablony připravené k odeslání',dokumenty:'Factsheets, nabídky a další PDF'}[tab]}</p>
         </div>
 
         {['kanban','table','followup','multiplikatori'].includes(tab) && (
@@ -926,6 +1477,7 @@ export default function App() {
         {!loading && tab==='multiplikatori' && <MultiplikatoriView leads={filtered} onOpen={setDetail} />}
         {tab==='discovery' && <DiscoveryScript />}
         {tab==='email' && <EmailTemplates />}
+        {tab==='dokumenty' && <PdfDocuments />}
       </div>
 
       {detail && (

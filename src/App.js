@@ -1556,17 +1556,84 @@ const KROKY = [
   },
 ]
 
+// Inline editovatelný text - klikni pro edit, uloží se automaticky
+const InlineEdit = ({ value, onSave, style, multiline }) => {
+  const [editing, setEditing] = useState(false)
+  const [val, setVal] = useState(value)
+  const [saving, setSaving] = useState(false)
+
+  const save = async () => {
+    if (val === value) { setEditing(false); return }
+    setSaving(true)
+    await onSave(val)
+    setSaving(false)
+    setEditing(false)
+  }
+
+  if (editing) {
+    return multiline ? (
+      <textarea
+        autoFocus
+        value={val}
+        onChange={e => setVal(e.target.value)}
+        onBlur={save}
+        onKeyDown={e => { if(e.key==='Escape') { setVal(value); setEditing(false) } }}
+        style={{
+          width:'100%', padding:'6px 8px', borderRadius:6,
+          border:'0.5px solid #534AB7', fontSize:13, fontFamily:'inherit',
+          resize:'vertical', minHeight:60, lineHeight:1.6,
+          background:'#fafffe', color:'#333',
+          ...style
+        }}
+      />
+    ) : (
+      <input
+        autoFocus
+        value={val}
+        onChange={e => setVal(e.target.value)}
+        onBlur={save}
+        onKeyDown={e => { if(e.key==='Enter') save(); if(e.key==='Escape') { setVal(value); setEditing(false) } }}
+        style={{
+          width:'100%', padding:'4px 8px', borderRadius:6,
+          border:'0.5px solid #534AB7', fontSize:14, fontFamily:'inherit',
+          background:'#fafffe', color:'#1a1a1a', fontWeight:500,
+          ...style
+        }}
+      />
+    )
+  }
+
+  return (
+    <div
+      onClick={() => setEditing(true)}
+      title="Klikni pro editaci"
+      style={{
+        cursor:'text', borderRadius:6, padding:'2px 4px', margin:'-2px -4px',
+        border:'0.5px solid transparent',
+        transition:'border-color 0.15s, background 0.15s',
+        ...style
+      }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor='#e0e0e0'; e.currentTarget.style.background='#fafaf8' }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor='transparent'; e.currentTarget.style.background='transparent' }}
+    >
+      {saving ? <span style={{color:'#aaa'}}>Ukládám...</span> : (val || <span style={{color:'#ccc',fontStyle:'italic'}}>Klikni pro editaci...</span>)}
+    </div>
+  )
+}
+
 const PruvodceStrategii = () => {
   const [aktivniMesic, setAktivniMesic] = useState('m1')
   const [splneno, setSplneno] = useState({})
   const [odpovedi, setOdpovedi] = useState({})
+  const [texty, setTexty] = useState({})
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const load = async () => {
-      const [splRes, odpRes] = await Promise.all([
+      const [splRes, odpRes, txtRes] = await Promise.all([
         supabase.from('pruvodce_splneno').select('*'),
-        supabase.from('strategic_answers').select('*')
+        supabase.from('strategic_answers').select('*'),
+        supabase.from('pruvodce_texty').select('*'),
       ])
       if (splRes.data) {
         const m = {}
@@ -1578,10 +1645,30 @@ const PruvodceStrategii = () => {
         odpRes.data.forEach(r => { m[r.klic] = r.odpoved })
         setOdpovedi(m)
       }
+      if (txtRes.data) {
+        const m = {}
+        txtRes.data.forEach(r => { m[r.klic] = r.hodnota })
+        setTexty(m)
+      }
       setLoading(false)
     }
     load()
   }, [])
+
+  const saveText = async (klic, hodnota) => {
+    setTexty(prev => ({ ...prev, [klic]: hodnota }))
+    const existing = texty[klic] !== undefined
+    if (existing) {
+      await supabase.from('pruvodce_texty').update({ hodnota }).eq('klic', klic)
+    } else {
+      await supabase.from('pruvodce_texty').insert([{ klic, hodnota }])
+    }
+  }
+
+  const getText = (krok, pole) => {
+    const klic = krok.id + '_' + pole
+    return texty[klic] !== undefined ? texty[klic] : krok[pole]
+  }
 
   const toggleSplneno = async (id) => {
     const nove = !splneno[id]
@@ -1607,7 +1694,7 @@ const PruvodceStrategii = () => {
     <div>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
         <div style={{fontSize:13,color:'#888'}}>
-          Splněno {celkemSplneno} z {KROKY.length} kroků
+          Splněno {celkemSplneno} z {KROKY.length} kroků · <span style={{fontSize:12,color:'#bbb'}}>Texty jsou editovatelné — klikni na libovolný text</span>
         </div>
         <div style={{background:'#f5f5f3',borderRadius:8,height:8,width:200,overflow:'hidden'}}>
           <div style={{background:'#1D9E75',height:'100%',width:(celkemSplneno/KROKY.length*100)+'%',transition:'width 0.3s',borderRadius:8}} />
@@ -1667,25 +1754,41 @@ const PruvodceStrategii = () => {
                     </span>
                     <span style={{fontSize:11,color:'#aaa'}}>Týden {krok.tyden}</span>
                   </div>
-                  <div style={{fontSize:14,fontWeight:500,color: done ? '#888' : '#1a1a1a',textDecoration: done ? 'line-through' : 'none'}}>
-                    {krok.nazev}
-                  </div>
+                  <InlineEdit
+                    value={getText(krok, 'nazev')}
+                    onSave={v => saveText(krok.id + '_nazev', v)}
+                    style={{fontSize:14,fontWeight:500,color: done ? '#888' : '#1a1a1a',textDecoration: done ? 'line-through' : 'none'}}
+                  />
                 </div>
               </div>
 
               {!done && (
                 <div style={{padding:'14px 20px 16px 60px'}}>
-                  <div style={{marginBottom:10}}>
-                    <div style={{fontSize:11,color:'#aaa',fontWeight:500,marginBottom:4,textTransform:'uppercase'}}>Proč</div>
-                    <div style={{fontSize:13,color:'#555',lineHeight:1.6}}>{krok.proc}</div>
+                  <div style={{marginBottom:12}}>
+                    <div style={{fontSize:11,color:'#aaa',fontWeight:500,marginBottom:6,textTransform:'uppercase'}}>Proč</div>
+                    <InlineEdit
+                      value={getText(krok, 'proc')}
+                      onSave={v => saveText(krok.id + '_proc', v)}
+                      multiline={true}
+                      style={{fontSize:13,color:'#555',lineHeight:1.6}}
+                    />
                   </div>
-                  <div style={{marginBottom:10}}>
-                    <div style={{fontSize:11,color:'#aaa',fontWeight:500,marginBottom:4,textTransform:'uppercase'}}>Jak na to</div>
-                    <div style={{fontSize:13,color:'#333',lineHeight:1.6}}>{krok.jak}</div>
+                  <div style={{marginBottom:12}}>
+                    <div style={{fontSize:11,color:'#aaa',fontWeight:500,marginBottom:6,textTransform:'uppercase'}}>Jak na to</div>
+                    <InlineEdit
+                      value={getText(krok, 'jak')}
+                      onSave={v => saveText(krok.id + '_jak', v)}
+                      multiline={true}
+                      style={{fontSize:13,color:'#333',lineHeight:1.6}}
+                    />
                   </div>
                   <div style={{background:'#f5f5f3',borderRadius:8,padding:'10px 14px',marginBottom: dynZprava ? 10 : 0}}>
-                    <div style={{fontSize:11,color:'#aaa',fontWeight:500,marginBottom:3,textTransform:'uppercase'}}>Cíl</div>
-                    <div style={{fontSize:13,color:'#333',fontWeight:500}}>{krok.cil}</div>
+                    <div style={{fontSize:11,color:'#aaa',fontWeight:500,marginBottom:6,textTransform:'uppercase'}}>Cíl</div>
+                    <InlineEdit
+                      value={getText(krok, 'cil')}
+                      onSave={v => saveText(krok.id + '_cil', v)}
+                      style={{fontSize:13,color:'#333',fontWeight:500}}
+                    />
                   </div>
                   {dynZprava && (
                     <div style={{background: mesic.bg,border:'0.5px solid '+mesic.barva+'44',borderRadius:8,padding:'10px 14px',marginTop:10}}>

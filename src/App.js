@@ -4,6 +4,26 @@ import { supabase, APP_PASSWORD } from './supabase'
 
 const SLACK_WEBHOOK = process.env.REACT_APP_SLACK_WEBHOOK
 
+// Push notifikace
+const requestPushPermission = async () => {
+  if (!('Notification' in window)) return false
+  if (Notification.permission === 'granted') return true
+  if (Notification.permission === 'denied') return false
+  const perm = await Notification.requestPermission()
+  return perm === 'granted'
+}
+
+const sendPushNotification = (title, body, onClick) => {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return
+  const n = new Notification(title, {
+    body,
+    icon: '/favicon.ico',
+    badge: '/favicon.ico',
+    tag: 'riscare-crm',
+  })
+  if (onClick) n.onclick = () => { window.focus(); onClick(); n.close() }
+}
+
 const sendSlack = async (text) => {
   if (!SLACK_WEBHOOK) return
   try {
@@ -217,6 +237,26 @@ const LeadDetail = ({ lead, onEdit, onClose }) => {
               }])
               alert('Úkol vytvořen a propojen s ' + lead.firma)
             }}>+ Úkol</button>
+            <button className="btn" style={{color:'#0F6E56',borderColor:'#0F6E56'}} onClick={() => {
+              const start = new Date()
+              start.setDate(start.getDate() + 1)
+              start.setHours(10, 0, 0, 0)
+              const end = new Date(start)
+              end.setMinutes(end.getMinutes() + 30)
+              const fmt = (d) => d.toISOString().replace(/[-:]/g,'').slice(0,15) + 'Z'
+              const title = encodeURIComponent('Discovery call — ' + lead.firma)
+              const details = encodeURIComponent(
+                'Firma: ' + lead.firma + '\n' +
+                'Kontakt: ' + (lead.osoba||'') + '\n' +
+                'Produkt: ' + (lead.produkt||'') + '\n' +
+                'CRM: https://crm-two-lemon.vercel.app'
+              )
+              const url = 'https://calendar.google.com/calendar/render?action=TEMPLATE' +
+                '&text=' + title +
+                '&dates=' + fmt(start) + '/' + fmt(end) +
+                '&details=' + details
+              window.open(url, '_blank')
+            }}>📅 Naplánovat call</button>
             <AiCallBtn lead={lead} />
             <AiEmailBtn lead={lead} />
             <button className="close-btn" onClick={onClose}>&times;</button>
@@ -3232,7 +3272,27 @@ export default function App() {
 
   const onLeadChange = useCallback(() => { fetchLeads() }, [fetchLeads])
 
-  useEffect(() => { if (authed) fetchLeads() }, [authed, fetchLeads])
+  useEffect(() => {
+    if (authed) {
+      fetchLeads()
+      // Požádat o push notifikace
+      requestPushPermission()
+    }
+  }, [authed, fetchLeads])
+
+  // Push notifikace pro follow-up dnes
+  useEffect(() => {
+    if (!authed || !leads.length) return
+    const today = new Date().toISOString().slice(0,10)
+    const fuDnes = leads.filter(l => l.followup === today && !l.stav?.includes('Uzavřeno'))
+    if (fuDnes.length > 0 && !sessionStorage.getItem('push_fu_' + today)) {
+      sessionStorage.setItem('push_fu_' + today, '1')
+      sendPushNotification(
+        '📅 Follow-up dnes — ' + fuDnes.length + ' lead' + (fuDnes.length > 1 ? 'ů' : ''),
+        fuDnes.slice(0,3).map(l => l.firma).join(', ') + (fuDnes.length > 3 ? ' a další...' : ''),
+      )
+    }
+  }, [leads, authed])
 
   // Kontrola mrtvých leadů - při každém načtení
   useEffect(() => {
@@ -3285,6 +3345,7 @@ export default function App() {
         const { error } = await supabase.from('leads').insert([cleanForm])
         if (error) { alert('Chyba insert: ' + error.message); console.error(error); return }
         await slackNovyLead(cleanForm)
+        sendPushNotification('🆕 Nový lead přidán', cleanForm.firma + ' — ' + (cleanForm.produkt||''))
       }
       setModal(null)
       setDetail(null)
@@ -3453,6 +3514,10 @@ export default function App() {
         })}
         <div className="sidebar-user">
           <div>Karel Petros</div>
+          <button className="logout-btn" style={{marginBottom:6}} onClick={async () => {
+            const ok = await requestPushPermission()
+            alert(ok ? '✓ Push notifikace povoleny!' : 'Notifikace nejsou povoleny — povol je v nastavení prohlížeče.')
+          }}>🔔 Notifikace</button>
           <button className="logout-btn" onClick={() => setAuthed(false)}>Odhlásit se</button>
         </div>
       </div>

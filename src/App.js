@@ -5,6 +5,7 @@ import { supabase, APP_PASSWORD } from './supabase'
 const SLACK_WEBHOOK = process.env.REACT_APP_SLACK_WEBHOOK
 
 const sendSlack = async (text) => {
+  if (!SLACK_WEBHOOK) return
   try {
     await fetch(SLACK_WEBHOOK, {
       method: 'POST',
@@ -15,6 +16,39 @@ const sendSlack = async (text) => {
     console.error('Slack error:', e)
   }
 }
+
+const slackNovyLead = (l) => sendSlack(
+  `🆕 *Nový lead přidán*
+*Firma:* ${l.firma}
+*Kontakt:* ${l.osoba || '—'} (${l.role || '—'})
+*Produkt:* ${l.produkt || '—'}
+*Segment:* ${l.segment || '—'}
+*Vede:* ${l.vede || '—'}
+👉 https://crm-two-lemon.vercel.app`
+)
+
+const slackZmenaStavu = (firma, stavOld, stavNew, vede) => {
+  const isWin = stavNew === 'Uzavřeno — vyhráno'
+  const emoji = isWin ? '🏆' : '🔄'
+  const text = isWin
+    ? `🏆 *DEAL UZAVŘEN! Gratulace!* 🎉
+*Firma:* ${firma}
+*Vede:* ${vede || '—'}
+
+Výborná práce! 💪`
+    : `🔄 *Změna stavu leadu*
+*Firma:* ${firma}
+*${stavOld}* → *${stavNew}*
+*Vede:* ${vede || '—'}`
+  return sendSlack(text)
+}
+
+const slackKomentar = (firma, autor, text) => sendSlack(
+  `💬 *Nový komentář v leadu*
+*Firma:* ${firma}
+*Od:* ${autor}
+*Zpráva:* ${text.slice(0, 150)}${text.length > 150 ? '...' : ''}`
+)
 
 // ─── KONSTANTY ────────────────────────────────────────────────────────────────
 const STAVS = ['Lead','Kontaktováno','Discovery call domluven','Discovery call proběhl',
@@ -90,6 +124,7 @@ const LeadDetail = ({ lead, onEdit, onClose }) => {
       autor,
       text: newText.trim()
     }])
+    await slackKomentar(lead.firma, autor, newText.trim())
     setNewText('')
     await fetchComments()
     setSending(false)
@@ -703,12 +738,12 @@ export default function App() {
         const { error } = await supabase.from('leads').update(cleanForm).eq('id', modal.id)
         if (error) { alert('Chyba update: ' + error.message); console.error(error); return }
         if (modal.stav !== cleanForm.stav) {
-          await sendSlack(`🔄 *Změna stavu leadu*\n*Firma:* ${cleanForm.firma}\n*${modal.stav}* → *${cleanForm.stav}*\n*Vede:* ${cleanForm.vede || '—'}`)
+          await slackZmenaStavu(cleanForm.firma, modal.stav, cleanForm.stav, cleanForm.vede)
         }
       } else {
         const { error } = await supabase.from('leads').insert([cleanForm])
         if (error) { alert('Chyba insert: ' + error.message); console.error(error); return }
-        await sendSlack(`🆕 *Nový lead přidán*\n*Firma:* ${cleanForm.firma}\n*Kontakt:* ${cleanForm.osoba || '—'}\n*Produkt:* ${cleanForm.produkt || '—'}\n*Stav:* ${cleanForm.stav}\n*Vede:* ${cleanForm.vede || '—'}`)
+        await slackNovyLead(cleanForm)
       }
       setModal(null)
       setDetail(null)

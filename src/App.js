@@ -25,9 +25,8 @@ const sendPushNotification = (title, body, onClick) => {
 }
 
 const sendSlack = async (text) => {
-  if (!SLACK_WEBHOOK) return
   try {
-    await fetch(SLACK_WEBHOOK, {
+    await fetch('/api/slack', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text })

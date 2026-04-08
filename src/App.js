@@ -681,13 +681,24 @@ export default function App() {
   useEffect(() => { if (authed) fetchLeads() }, [authed, fetchLeads])
 
   const saveLead = async (form) => {
-    if (modal && modal.id) {
-      await supabase.from('leads').update(form).eq('id', modal.id)
-    } else {
-      await supabase.from('leads').insert([form])
+    try {
+      const cleanForm = { ...form }
+      delete cleanForm.id
+      delete cleanForm.created_at
+      if (modal && modal.id) {
+        const { error } = await supabase.from('leads').update(cleanForm).eq('id', modal.id)
+        if (error) { alert('Chyba update: ' + error.message); console.error(error); return }
+      } else {
+        const { error } = await supabase.from('leads').insert([cleanForm])
+        if (error) { alert('Chyba insert: ' + error.message); console.error(error); return }
+      }
+      setModal(null)
+      setDetail(null)
+      fetchLeads()
+    } catch(e) {
+      alert('Neočekávaná chyba: ' + e.message)
+      console.error(e)
     }
-    setModal(null)
-    fetchLeads()
   }
 
   const deleteLead = async (id) => {

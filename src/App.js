@@ -2515,6 +2515,7 @@ export default function App() {
   const [leads, setLeads] = useState([])
   const [loading, setLoading] = useState(false)
   const [tab, setTab] = useState('kanban')
+  const [drawerOpen, setDrawerOpen] = useState(false)
   const DEFAULT_NAV = ['kanban','table','followup','ukoly','multiplikatori','discovery','email','dokumenty','strategie','produkty','pruvodce']
   const [navOrder, setNavOrder] = useState(() => {
     try {
@@ -2636,8 +2637,56 @@ export default function App() {
     </div>
   )
 
+  const switchTab = (id) => { setTab(id); setDrawerOpen(false) }
+
   return (
     <div className="app-layout">
+
+      {/* Mobile top bar */}
+      <div className="mobile-topbar">
+        <div className="logo">riscare CRM</div>
+        <button className="hamburger-btn" onClick={() => setDrawerOpen(true)}>
+          <span/><span/><span/>
+        </button>
+      </div>
+
+      {/* Mobile drawer */}
+      {drawerOpen && (
+        <div className="mobile-drawer">
+          <div className="drawer-overlay" onClick={() => setDrawerOpen(false)} />
+          <div className="drawer-panel">
+            <div className="drawer-head">
+              <div>
+                <div className="logo" style={{color:'#534AB7',fontWeight:600,fontSize:15}}>riscare CRM</div>
+                <div style={{fontSize:11,color:'#999',marginTop:2}}>Talkey a.s.</div>
+              </div>
+              <button className="drawer-close" onClick={() => setDrawerOpen(false)}>&times;</button>
+            </div>
+            {navOrder.map(nid => {
+              const n = NAV.find(x => x.id === nid)
+              if (!n) return null
+              return (
+                <div key={n.id}
+                  className={`nav-item ${tab===n.id?'active':''}`}
+                  onClick={() => switchTab(n.id)}
+                  style={{cursor:'pointer'}}
+                >
+                  <span className="nav-icon">{n.icon}</span>
+                  <span>{n.label}</span>
+                  {n.id==='followup' && fuCount>0 && (
+                    <span style={{marginLeft:'auto',background:'#A32D2D',color:'#fff',borderRadius:10,padding:'1px 7px',fontSize:11}}>{fuCount}</span>
+                  )}
+                </div>
+              )
+            })}
+            <div className="sidebar-user">
+              <div>Karel Petros</div>
+              <button className="logout-btn" onClick={() => { setAuthed(false); setDrawerOpen(false) }}>Odhlásit se</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="sidebar">
         <div className="sidebar-logo">
           <div className="logo">riscare CRM</div>
@@ -2667,7 +2716,7 @@ export default function App() {
               }}
               onDragEnd={() => { setDragNavId(null); setDragNavOver(null) }}
               className={`nav-item ${tab===n.id?'active':''}`}
-              onClick={() => setTab(n.id)}
+              onClick={() => switchTab(n.id)}
               style={{
                 cursor:'grab',
                 background: dragNavOver===n.id && dragNavId!==n.id ? '#f0eeff' : undefined,

@@ -243,7 +243,7 @@ const LeadDetail = ({ lead, onEdit, onClose }) => {
               const end = new Date(start)
               end.setMinutes(end.getMinutes() + 30)
               const fmt = (d) => d.toISOString().replace(/[-:]/g,'').slice(0,15) + 'Z'
-              const title = encodeURIComponent('Discovery call — ' + lead.firma)
+              const title = encodeURIComponent('Schůzka — ' + lead.firma)
               const details = encodeURIComponent(
                 'Firma: ' + lead.firma + '\n' +
                 'Kontakt: ' + (lead.osoba||'') + '\n' +
@@ -255,7 +255,7 @@ const LeadDetail = ({ lead, onEdit, onClose }) => {
                 '&dates=' + fmt(start) + '/' + fmt(end) +
                 '&details=' + details
               window.open(url, '_blank')
-            }}>📅 Naplánovat call</button>
+            }}>📅 Naplánovat schůzku</button>
             <AiCallBtn lead={lead} />
             <AiEmailBtn lead={lead} />
             <button className="close-btn" onClick={onClose}>&times;</button>

@@ -3143,6 +3143,21 @@ const UkolModal = ({ ukol, leads, onSave, onClose }) => {
         </div>
         <div className="modal-foot">
           {ukol && <button className="btn danger" onClick={() => { if(window.confirm('Smazat?')) onSave(null, true) }}>Smazat</button>}
+          <button className="btn" style={{color:'#0F6E56',borderColor:'#0F6E56'}} onClick={() => {
+            if (!form.do_kdy) { alert('Nastav nejdřív deadline'); return }
+            const lead = leads.find(l => l.id === form.lead_id)
+            const start = new Date(form.do_kdy + 'T09:00:00')
+            const end = new Date(form.do_kdy + 'T09:30:00')
+            const fmt = (d) => d.toISOString().replace(/[-:]/g,'').slice(0,15) + 'Z'
+            const title = encodeURIComponent((form.nazev||'Úkol') + (lead ? ' — ' + lead.firma : ''))
+            const details = encodeURIComponent(
+              (form.popis ? 'Popis: ' + form.popis + '\n' : '') +
+              'Zodpovídá: ' + (form.kdo||'') + '\n' +
+              (lead ? 'Firma: ' + lead.firma + '\n' : '') +
+              'CRM: https://crm-two-lemon.vercel.app'
+            )
+            window.open('https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + title + '&dates=' + fmt(start) + '/' + fmt(end) + '&details=' + details, '_blank')
+          }}>📅 Kalendář</button>
           <button className="btn" onClick={onClose}>Zrušit</button>
           <button className="btn accent" onClick={() => { if(!form.nazev.trim()){alert('Zadej název');return} onSave(form) }}>Uložit</button>
         </div>

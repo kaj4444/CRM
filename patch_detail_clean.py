@@ -1,102 +1,14 @@
-import React, { useState, useEffect, useCallback } from 'react'
-import './index.css'
-import { supabase, APP_PASSWORD } from './supabase'
+# -*- coding: utf-8 -*-
+with open('src/App.js', 'r', encoding='utf-8') as f:
+    content = f.read()
 
-const SLACK_WEBHOOK = process.env.REACT_APP_SLACK_WEBHOOK
+old_start = "// ─── LEAD DETAIL S KOMENTÁŘI ─────────────────────────────────────────────────"
+old_end = "// ─── MODAL FORMULÁŘ ───────────────────────────────────────────────────────────────"
+idx = content.find(old_start)
+idx_end = content.find(old_end)
+old_block = content[idx:idx_end]
 
-const sendSlack = async (text) => {
-  if (!SLACK_WEBHOOK) return
-  try {
-    await fetch(SLACK_WEBHOOK, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text })
-    })
-  } catch(e) {
-    console.error('Slack error:', e)
-  }
-}
-
-const slackNovyLead = (l) => sendSlack(
-  `🆕 *Nový lead přidán*
-*Firma:* ${l.firma}
-*Kontakt:* ${l.osoba || '—'} (${l.role || '—'})
-*Produkt:* ${l.produkt || '—'}
-*Segment:* ${l.segment || '—'}
-*Vede:* ${l.vede || '—'}
-👉 https://crm-two-lemon.vercel.app`
-)
-
-const slackZmenaStavu = (firma, stavOld, stavNew, vede) => {
-  const isWin = stavNew === 'Uzavřeno — vyhráno'
-  const emoji = isWin ? '🏆' : '🔄'
-  const text = isWin
-    ? `🏆 *DEAL UZAVŘEN! Gratulace!* 🎉
-*Firma:* ${firma}
-*Vede:* ${vede || '—'}
-
-Výborná práce! 💪`
-    : `🔄 *Změna stavu leadu*
-*Firma:* ${firma}
-*${stavOld}* → *${stavNew}*
-*Vede:* ${vede || '—'}`
-  return sendSlack(text)
-}
-
-const slackKomentar = (firma, autor, text) => sendSlack(
-  `💬 *Nový komentář v leadu*
-*Firma:* ${firma}
-*Od:* ${autor}
-*Zpráva:* ${text.slice(0, 150)}${text.length > 150 ? '...' : ''}`
-)
-
-// ─── KONSTANTY ────────────────────────────────────────────────────────────────
-const STAVS = ['Lead','Kontaktováno','Discovery call domluven','Discovery call proběhl',
-  'Nabídka odeslána','Vyjednávání','Uzavřeno — vyhráno','Uzavřeno — prohráno','Odloženo']
-
-const STAV_STYLES = {
-  'Lead': { bg:'#E6F1FB', color:'#185FA5' },
-  'Kontaktováno': { bg:'#FAEEDA', color:'#854F0B' },
-  'Discovery call domluven': { bg:'#E1F5EE', color:'#0F6E56' },
-  'Discovery call proběhl': { bg:'#EAF3DE', color:'#3B6D11' },
-  'Nabídka odeslána': { bg:'#EEEDFE', color:'#534AB7' },
-  'Vyjednávání': { bg:'#FAEEDA', color:'#633806' },
-  'Uzavřeno — vyhráno': { bg:'#EAF3DE', color:'#27500A' },
-  'Uzavřeno — prohráno': { bg:'#FCEBEB', color:'#791F1F' },
-  'Odloženo': { bg:'#F1EFE8', color:'#5F5E5A' },
-}
-
-const KANBAN_STAVS = STAVS.slice(0, 7)
-
-const EMPTY_LEAD = {
-  firma:'', osoba:'', role:'CEO', segment:'Přímý klient',
-  email:'', telefon:'', odvetvi:'Energetika', zdroj:'Vlastní síť',
-  produkt:'Review NIS2', stav:'Lead', cena:'', prob:'Nízká (0–30 %)',
-  vede:'Karel', followup:'', d1:'', namitka:'', poznamky:''
-}
-
-const today = () => new Date().toISOString().slice(0,10)
-
-// ─── HELPER KOMPONENTY ────────────────────────────────────────────────────────
-const StavBadge = ({ stav }) => {
-  const s = STAV_STYLES[stav] || { bg:'#f0f0ee', color:'#666' }
-  return <span className="stav-badge" style={{ background:s.bg, color:s.color }}>{stav}</span>
-}
-
-const ProbTag = ({ prob }) => {
-  if (!prob) return null
-  const cls = prob.includes('Vysoká') ? 'tag-high' : prob.includes('Střední') ? 'tag-mid' : 'tag-low'
-  const label = prob.replace(' (70–100 %)','').replace(' (30–70 %)','').replace(' (0–30 %)','')
-  return <span className={`tag ${cls}`}>{label}</span>
-}
-
-const ProdTag = ({ produkt }) => {
-  if (!produkt || produkt === 'Neznámý') return null
-  const cls = produkt.includes('DORA') ? 'tag-dora' : 'tag-nis2'
-  return <span className={`tag ${cls}`}>{produkt}</span>
-}
-
-// ─── LEAD DETAIL S KOMENTÁŘI ─────────────────────────────────────────────────
+new_block = """// ─── LEAD DETAIL S KOMENTÁŘI ─────────────────────────────────────────────────
 const LeadDetail = ({ lead, onEdit, onClose }) => {
   const [tab, setTab] = useState('aktivita')
   const [comments, setComments] = useState([])
@@ -317,4 +229,12 @@ const LeadDetail = ({ lead, onEdit, onClose }) => {
   )
 }
 
-// ─── MODAL FORMULÁŘ ───────────────────────────────────────────────────────────
+// ─── MODAL FORMULÁŘ ───────────────────────────────────────────────────────────"""
+
+if old_block in content:
+    content = content.replace(old_block, new_block)
+    with open('src/App.js', 'w', encoding='utf-8') as f:
+        f.write(content)
+    print("OK - LeadDetail přepsán")
+else:
+    print("ERROR - old_block nenalezen, délka: " + str(len(old_block)))

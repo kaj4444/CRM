@@ -3553,19 +3553,16 @@ export default function App() {
               </select>
               <button className="btn accent" onClick={() => setModal('new')}>+ Nový lead</button>
         <button className="btn" onClick={() => {
-          const header = ['Firma','Osoba','Role','Segment','Email','Telefon','Odvětví','Zdroj','Produkt','Stav','Cena','Pravděpodobnost','Vede','Follow-up','Poznámky']
-          const rows = filtered.map(l => [
-            l.firma, l.osoba, l.role, l.segment, l.email, l.telefon,
-            l.odvetvi, l.zdroj, l.produkt, l.stav, l.cena, l.prob,
-            l.vede, l.followup, (l.poznamky||'').replace(/
-/g,' ')
-          ])
-          const csv = [header, ...rows].map(r => r.map(v => '"'+(v||'')+'"').join(',')).join('
-')
-          const blob = new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8'})
+          const cols = ['Firma','Osoba','Role','Segment','Email','Produkt','Stav','Cena','Vede','Follow-up']
+          const rows = filtered.map(l => [l.firma,l.osoba,l.role,l.segment,l.email,l.produkt,l.stav,l.cena,l.vede,l.followup])
+          const escape = v => '"' + String(v||'').replace(/"/g,'""') + '"'
+          const sep = String.fromCharCode(13,10)
+          const csv = [cols,...rows].map(r=>r.map(escape).join(',')).join(sep)
+          const bom = String.fromCharCode(0xFEFF)
+          const blob = new Blob([bom+csv], {type:'text/csv;charset=utf-8'})
           const url = URL.createObjectURL(blob)
           const a = document.createElement('a')
-          a.href = url; a.download = 'riscare-pipeline-'+new Date().toISOString().slice(0,10)+'.csv'
+          a.href = url; a.download = 'riscare-'+new Date().toISOString().slice(0,10)+'.csv'
           a.click(); URL.revokeObjectURL(url)
         }}>⬇ Export CSV</button>
             </div>

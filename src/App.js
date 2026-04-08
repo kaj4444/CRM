@@ -320,37 +320,95 @@ const LeadModal = ({ lead, onSave, onDelete, onClose }) => {
 }
 
 // ─── KANBAN ────────────────────────────────────────────────────────────────────
-const KanbanView = ({ leads, onOpen }) => {
+const KanbanView = ({ leads, onOpen, onStavChange }) => {
   const t = today()
+  const [dragging, setDragging] = useState(null)
+  const [dragOver, setDragOver] = useState(null)
+
+  const handleDragStart = (e, lead) => {
+    setDragging(lead)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const handleDragOver = (e, stav) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    setDragOver(stav)
+  }
+
+  const handleDrop = (e, newStav) => {
+    e.preventDefault()
+    if (dragging && dragging.stav !== newStav) {
+      onStavChange(dragging, newStav)
+    }
+    setDragging(null)
+    setDragOver(null)
+  }
+
+  const handleDragEnd = () => {
+    setDragging(null)
+    setDragOver(null)
+  }
+
   return (
     <div className="kanban">
       {KANBAN_STAVS.map(stav => {
         const cards = leads.filter(l => l.stav === stav)
+        const isOver = dragOver === stav
         return (
-          <div className="kanban-col" key={stav}>
-            <div className="col-header">
+          <div
+            className="kanban-col"
+            key={stav}
+            onDragOver={e => handleDragOver(e, stav)}
+            onDrop={e => handleDrop(e, stav)}
+            style={{ transition: 'background 0.15s' }}
+          >
+            <div className="col-header" style={{ color: isOver ? '#534AB7' : undefined }}>
               <span>{stav}</span>
               <span className="col-count">{cards.length}</span>
             </div>
-            {!cards.length && <div className="empty-col">Prázdné</div>}
-            {cards.map(l => {
-              const overdue = l.followup && l.followup <= t
-              return (
-                <div className="kanban-card" key={l.id} onClick={() => onOpen(l)}>
-                  <div className="card-firm">{l.firma}</div>
-                  <div className="card-person">{l.osoba || '—'} · {l.role}</div>
-                  <div className="card-tags">
-                    <ProdTag produkt={l.produkt} />
-                    <ProbTag prob={l.prob} />
-                  </div>
-                  {l.followup && (
-                    <div className={`card-followup ${overdue ? 'overdue' : ''}`}>
-                      📅 {l.followup}{overdue ? ' — dnes!' : ''}
+            <div style={{
+              minHeight: 60,
+              borderRadius: 8,
+              border: isOver ? '2px dashed #534AB7' : '2px dashed transparent',
+              background: isOver ? '#EEEDFE' : 'transparent',
+              transition: 'all 0.15s',
+              padding: isOver ? '4px' : '0',
+            }}>
+              {!cards.length && !isOver && <div className="empty-col">Prázdné</div>}
+              {cards.map(l => {
+                const overdue = l.followup && l.followup <= t
+                const isDragging = dragging?.id === l.id
+                return (
+                  <div
+                    className="kanban-card"
+                    key={l.id}
+                    draggable
+                    onDragStart={e => handleDragStart(e, l)}
+                    onDragEnd={handleDragEnd}
+                    onClick={() => !dragging && onOpen(l)}
+                    style={{
+                      opacity: isDragging ? 0.4 : 1,
+                      cursor: 'grab',
+                      transform: isDragging ? 'rotate(2deg)' : 'none',
+                      transition: 'opacity 0.15s, transform 0.15s',
+                    }}
+                  >
+                    <div className="card-firm">{l.firma}</div>
+                    <div className="card-person">{l.osoba || '—'} · {l.role}</div>
+                    <div className="card-tags">
+                      <ProdTag produkt={l.produkt} />
+                      <ProbTag prob={l.prob} />
                     </div>
-                  )}
-                </div>
-              )
-            })}
+                    {l.followup && (
+                      <div className={`card-followup ${overdue ? 'overdue' : ''}`}>
+                        📅 {l.followup}{overdue ? ' — dnes!' : ''}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
           </div>
         )
       })}
@@ -760,6 +818,14 @@ export default function App() {
     fetchLeads()
   }
 
+  const changeStav = async (lead, newStav) => {
+    const { error } = await supabase.from('leads').update({ stav: newStav }).eq('id', lead.id)
+    if (!error) {
+      await slackZmenaStavu(lead.firma, lead.stav, newStav, lead.vede)
+      fetchLeads()
+    }
+  }
+
   const filtered = leads.filter(l => {
     if (search && !l.firma?.toLowerCase().includes(search.toLowerCase()) && !l.osoba?.toLowerCase().includes(search.toLowerCase())) return false
     if (filtrSeg && l.segment !== filtrSeg) return false
@@ -854,7 +920,7 @@ export default function App() {
         )}
 
         {loading && <div className="loading">Načítám data...</div>}
-        {!loading && tab==='kanban' && <KanbanView leads={filtered} onOpen={setDetail} />}
+        {!loading && tab==='kanban' && <KanbanView leads={filtered} onOpen={setDetail} onStavChange={changeStav} />}
         {!loading && tab==='table' && <TableView leads={filtered} onOpen={setDetail} />}
         {!loading && tab==='followup' && <FollowupView leads={filtered} onOpen={setDetail} />}
         {!loading && tab==='multiplikatori' && <MultiplikatoriView leads={filtered} onOpen={setDetail} />}

@@ -48,6 +48,150 @@ const ProdTag = ({ produkt }) => {
   return <span className={`tag ${cls}`}>{produkt}</span>
 }
 
+// ─── LEAD DETAIL S KOMENTÁŘI ─────────────────────────────────────────────────
+const LeadDetail = ({ lead, onEdit, onClose }) => {
+  const [comments, setComments] = useState([])
+  const [newText, setNewText] = useState('')
+  const [autor, setAutor] = useState('Karel')
+  const [loading, setLoading] = useState(true)
+  const [sending, setSending] = useState(false)
+
+  const fetchComments = useCallback(async () => {
+    const { data } = await supabase
+      .from('comments')
+      .select('*')
+      .eq('lead_id', lead.id)
+      .order('created_at', { ascending: true })
+    setComments(data || [])
+    setLoading(false)
+  }, [lead.id])
+
+  useEffect(() => { fetchComments() }, [fetchComments])
+
+  const sendComment = async () => {
+    if (!newText.trim()) return
+    setSending(true)
+    await supabase.from('comments').insert([{
+      lead_id: lead.id,
+      autor,
+      text: newText.trim()
+    }])
+    setNewText('')
+    await fetchComments()
+    setSending(false)
+  }
+
+  const deleteComment = async (id) => {
+    if (!window.confirm('Smazat komentář?')) return
+    await supabase.from('comments').delete().eq('id', id)
+    fetchComments()
+  }
+
+  const formatDate = (iso) => {
+    const d = new Date(iso)
+    return d.toLocaleDateString('cs-CZ', { day:'numeric', month:'short' }) +
+      ' ' + d.toLocaleTimeString('cs-CZ', { hour:'2-digit', minute:'2-digit' })
+  }
+
+  const autorColor = { Karel:'#534AB7', Radim:'#0F6E56', Aleš:'#854F0B' }
+
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal" style={{maxWidth:640}}>
+        <div className="modal-head">
+          <div>
+            <h2>{lead.firma}</h2>
+            <div style={{fontSize:13,color:'#888',marginTop:2}}>{lead.osoba} · {lead.role} · <StavBadge stav={lead.stav} /></div>
+          </div>
+          <div style={{display:'flex',gap:8,alignItems:'center'}}>
+            <button className="btn" onClick={() => onEdit(lead)}>Upravit</button>
+            <button className="close-btn" onClick={onClose}>×</button>
+          </div>
+        </div>
+
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px 24px',padding:'16px 24px',borderBottom:'0.5px solid #f0f0f0',fontSize:13}}>
+          {lead.email && <div><span style={{color:'#888'}}>Email: </span>{lead.email}</div>}
+          {lead.telefon && <div><span style={{color:'#888'}}>Tel: </span>{lead.telefon}</div>}
+          {lead.produkt && <div><span style={{color:'#888'}}>Produkt: </span>{lead.produkt}</div>}
+          {lead.cena && <div><span style={{color:'#888'}}>Cena: </span>{Number(lead.cena).toLocaleString('cs')} Kč</div>}
+          {lead.followup && <div><span style={{color:'#888'}}>Follow-up: </span>{lead.followup}</div>}
+          {lead.vede && <div><span style={{color:'#888'}}>Vede: </span>{lead.vede}</div>}
+          {lead.zdroj && <div><span style={{color:'#888'}}>Zdroj: </span>{lead.zdroj}</div>}
+          {lead.prob && <div><span style={{color:'#888'}}>Pravd.: </span>{lead.prob}</div>}
+        </div>
+
+        {lead.poznamky && (
+          <div style={{padding:'12px 24px',borderBottom:'0.5px solid #f0f0f0',fontSize:13,color:'#555',background:'#fafaf8'}}>
+            <div style={{fontSize:11,color:'#aaa',marginBottom:4,fontWeight:500,textTransform:'uppercase',letterSpacing:'0.4px'}}>Poznámky</div>
+            {lead.poznamky}
+          </div>
+        )}
+
+        <div style={{padding:'16px 24px 0'}}>
+          <div style={{fontSize:13,fontWeight:500,marginBottom:12}}>
+            Aktivita · {comments.length} {comments.length===1?'komentář':'komentářů'}
+          </div>
+
+          <div style={{maxHeight:280,overflowY:'auto',marginBottom:16}}>
+            {loading && <div style={{color:'#aaa',fontSize:13,padding:'16px 0'}}>Načítám...</div>}
+            {!loading && !comments.length && (
+              <div style={{color:'#ccc',fontSize:13,padding:'16px 0',textAlign:'center'}}>Zatím žádná aktivita — přidej první komentář</div>
+            )}
+            {comments.map(c => (
+              <div key={c.id} style={{display:'flex',gap:10,marginBottom:14}}>
+                <div style={{
+                  width:32,height:32,borderRadius:'50%',flexShrink:0,
+                  background: autorColor[c.autor] ? autorColor[c.autor]+'22' : '#f0f0ee',
+                  display:'flex',alignItems:'center',justifyContent:'center',
+                  fontSize:12,fontWeight:500,
+                  color: autorColor[c.autor] || '#666'
+                }}>
+                  {c.autor.slice(0,1)}
+                </div>
+                <div style={{flex:1}}>
+                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:3}}>
+                    <span style={{fontSize:13,fontWeight:500,color: autorColor[c.autor] || '#333'}}>{c.autor}</span>
+                    <span style={{fontSize:11,color:'#bbb'}}>{formatDate(c.created_at)}</span>
+                    <button onClick={() => deleteComment(c.id)} style={{marginLeft:'auto',background:'none',border:'none',color:'#ddd',cursor:'pointer',fontSize:14,lineHeight:1,padding:'0 2px'}}>×</button>
+                  </div>
+                  <div style={{fontSize:13,color:'#333',lineHeight:1.6,background:'#f8f8f6',borderRadius:8,padding:'8px 12px',whiteSpace:'pre-wrap'}}>{c.text}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={{padding:'12px 24px 20px',borderTop:'0.5px solid #f0f0f0'}}>
+          <div style={{display:'flex',gap:8,marginBottom:8,alignItems:'center'}}>
+            <span style={{fontSize:12,color:'#888'}}>Píšu jako:</span>
+            {['Karel','Radim','Aleš'].map(a => (
+              <button key={a} onClick={() => setAutor(a)} style={{
+                padding:'3px 12px',borderRadius:10,fontSize:12,cursor:'pointer',
+                border:`0.5px solid ${autor===a ? autorColor[a] : '#e0e0e0'}`,
+                background: autor===a ? autorColor[a]+'18' : '#fff',
+                color: autor===a ? autorColor[a] : '#888',
+                fontWeight: autor===a ? 500 : 400
+              }}>{a}</button>
+            ))}
+          </div>
+          <div style={{display:'flex',gap:8}}>
+            <textarea
+              value={newText}
+              onChange={e => setNewText(e.target.value)}
+              onKeyDown={e => { if(e.key==='Enter' && e.metaKey) sendComment() }}
+              placeholder="Napiš komentář... (Cmd+Enter pro odeslání)"
+              style={{flex:1,padding:'8px 12px',borderRadius:8,border:'0.5px solid #ddd',fontSize:13,fontFamily:'inherit',resize:'none',height:72}}
+            />
+            <button className="btn accent" onClick={sendComment} disabled={sending||!newText.trim()} style={{alignSelf:'flex-end',height:36}}>
+              {sending ? '...' : 'Odeslat'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── MODAL FORMULÁŘ ───────────────────────────────────────────────────────────
 const LeadModal = ({ lead, onSave, onDelete, onClose }) => {
   const [form, setForm] = useState(lead || EMPTY_LEAD)
@@ -516,6 +660,7 @@ export default function App() {
   const [loading, setLoading] = useState(false)
   const [tab, setTab] = useState('kanban')
   const [modal, setModal] = useState(null) // null | 'new' | lead object
+  const [detail, setDetail] = useState(null) // lead object pro detail s komentáři
   const [search, setSearch] = useState('')
   const [filtrSeg, setFiltrSeg] = useState('')
   const [filtrProd, setFiltrProd] = useState('')
@@ -645,18 +790,26 @@ export default function App() {
         )}
 
         {loading && <div className="loading">Načítám data...</div>}
-        {!loading && tab==='kanban' && <KanbanView leads={filtered} onOpen={setModal} />}
-        {!loading && tab==='table' && <TableView leads={filtered} onOpen={setModal} />}
-        {!loading && tab==='followup' && <FollowupView leads={filtered} onOpen={setModal} />}
-        {!loading && tab==='multiplikatori' && <MultiplikatoriView leads={filtered} onOpen={setModal} />}
+        {!loading && tab==='kanban' && <KanbanView leads={filtered} onOpen={setDetail} />}
+        {!loading && tab==='table' && <TableView leads={filtered} onOpen={setDetail} />}
+        {!loading && tab==='followup' && <FollowupView leads={filtered} onOpen={setDetail} />}
+        {!loading && tab==='multiplikatori' && <MultiplikatoriView leads={filtered} onOpen={setDetail} />}
         {tab==='discovery' && <DiscoveryScript />}
         {tab==='email' && <EmailTemplates />}
       </div>
 
+      {detail && (
+        <LeadDetail
+          lead={detail}
+          onEdit={(l) => { setDetail(null); setModal(l) }}
+          onClose={() => setDetail(null)}
+        />
+      )}
+
       {modal && (
         <LeadModal
           lead={modal === 'new' ? null : modal}
-          onSave={saveLead}
+          onSave={async (form) => { await saveLead(form); if(detail) setDetail({...detail,...form}) }}
           onDelete={deleteLead}
           onClose={() => setModal(null)}
         />

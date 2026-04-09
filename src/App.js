@@ -3425,7 +3425,7 @@ export default function App() {
   const [pwErr, setPwErr] = useState('')
   const [leads, setLeads] = useState([])
   const [loading, setLoading] = useState(false)
-  const [tab, setTab] = useState('kanban')
+  const [tab, setTab] = useState('dashboard')
   const [drawerOpen, setDrawerOpen] = useState(false)
   const DEFAULT_NAV = ['dashboard','kanban','table','followup','ukoly','multiplikatori','discovery','email','dokumenty','strategie','produkty','pruvodce']
   const [navOrder, setNavOrder] = useState(() => {

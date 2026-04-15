@@ -3773,14 +3773,29 @@ export default function App() {
             <input className="auth-inp" type="password" placeholder="Potvrďte heslo" value={authPw2}
               onChange={e => setAuthPw2(e.target.value)}
               onKeyDown={e => e.key==='Enter' && doRegister()} />
-            <select className="auth-inp" value={authIndustry} onChange={e => setAuthIndustry(e.target.value)}>
-              <option value="">Vyberte odvětví (volitelné)</option>
-              <option value="real-estate">🏠 Reality / Nemovitosti</option>
-              <option value="cybersecurity">🛡️ Kybernetická bezpečnost</option>
-              <option value="finance">💳 Finance / Pojišťovnictví</option>
-              <option value="it">💻 IT / Technologie</option>
-              <option value="general">🏢 Obecné / Jiné</option>
-            </select>
+            <div style={{marginBottom:4}}>
+              <div style={{fontSize:12,color:'#888',marginBottom:8,fontWeight:500}}>Vyberte vaše odvětví *</div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8}}>
+                {[
+                  {val:'cybersecurity', icon:'🛡️', label:'Kyber-
+bezpečnost'},
+                  {val:'real-estate', icon:'🏠', label:'Reality'},
+                  {val:'general', icon:'🏢', label:'Jiné'},
+                ].map(o => (
+                  <button key={o.val} type="button"
+                    onClick={() => setAuthIndustry(o.val)}
+                    style={{
+                      padding:'14px 8px', border: authIndustry===o.val ? '2px solid #534AB7' : '1.5px solid #e5e5e5',
+                      borderRadius:10, background: authIndustry===o.val ? '#f0eeff' : '#fafafa',
+                      cursor:'pointer', textAlign:'center', transition:'all .15s',
+                      color: authIndustry===o.val ? '#534AB7' : '#555',
+                    }}>
+                    <div style={{fontSize:24,marginBottom:4}}>{o.icon}</div>
+                    <div style={{fontSize:12,fontWeight:600,whiteSpace:'pre-line',lineHeight:1.3}}>{o.label}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
             {authErr && <div className="login-error">{authErr}</div>}
             <button className="btn-primary" onClick={doRegister} disabled={authLoading}>
               {authLoading ? 'Vytvářím účet...' : 'Začít 7 dní zdarma →'}

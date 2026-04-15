@@ -330,7 +330,7 @@ const LeadDetail = ({ lead, onEdit, onClose }) => {
       typ: 'call',
       datum_callu: callDatum
     }
-    await supabase.from('comments').insert([callEntry])
+    await supabase.from('comments').insert([{ ...callEntry, user_id: session?.user?.id }])
     await slackKomentar(lead.firma, callAutor, '📞 Call ' + callDatum + ': ' + callText.trim().slice(0,100))
     setCallText('')
     setCallDatum(new Date().toISOString().slice(0,10))
@@ -3210,7 +3210,7 @@ const UkolyView = ({ leads, onLeadChange }) => {
     if (modal?.id) {
       await supabase.from('ukoly').update(form).eq('id', modal.id)
     } else {
-      await supabase.from('ukoly').insert([form])
+      await supabase.from('ukoly').insert([{ ...form, user_id: session?.user?.id }])
     }
 
     // Pokud se úkol označil jako hotový a má lead a nový stav
@@ -3219,7 +3219,8 @@ const UkolyView = ({ leads, onLeadChange }) => {
       await supabase.from('comments').insert([{
         lead_id: form.lead_id,
         autor: form.kdo,
-        text: 'Úkol splněn: ' + form.nazev + (form.popis ? ' — ' + form.popis : '')
+        text: 'Úkol splněn: ' + form.nazev + (form.popis ? ' — ' + form.popis : ''),
+        user_id: session?.user?.id
       }])
       if (onLeadChange) onLeadChange()
     }
@@ -3240,7 +3241,8 @@ const UkolyView = ({ leads, onLeadChange }) => {
       await supabase.from('comments').insert([{
         lead_id: ukol.lead_id,
         autor: ukol.kdo,
-        text: 'Úkol splněn: ' + ukol.nazev
+        text: 'Úkol splněn: ' + ukol.nazev,
+        user_id: session?.user?.id
       }])
       if (onLeadChange) onLeadChange()
     }

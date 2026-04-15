@@ -377,3 +377,109 @@ tr:hover td { background: #fafaf8; cursor: pointer; }
   /* Login */
   .login-card { width: 90%; padding: 28px 20px; }
 }
+
+/* AUTH STYLES */
+.auth-logo { display: flex; align-items: center; justify-content: center; gap: 2px; margin-bottom: 6px; }
+.auth-inp {
+  width: 100%; padding: 11px 14px; border: 1.5px solid #e5e5e5; border-radius: 8px;
+  font-size: 14px; font-family: inherit; outline: none; transition: border-color .2s; background: #fafafa;
+}
+.auth-inp:focus { border-color: #534AB7; background: #fff; }
+.auth-inp::placeholder { color: #bbb; }
+select.auth-inp { cursor: pointer; color: #333; }
+.auth-link {
+  background: none; border: none; color: #534AB7; font-size: 13px; cursor: pointer;
+  padding: 4px 0; text-align: center; width: 100%; text-decoration: underline;
+}
+.auth-link:hover { color: #A32D2D; }
+.auth-divider {
+  text-align: center; font-size: 12px; color: #bbb; position: relative; margin: 4px 0;
+}
+.auth-success { color: #059669; font-size: 13px; background: #ecfdf5; padding: 10px 14px; border-radius: 8px; text-align: center; }
+.btn-secondary-outline {
+  width: 100%; padding: 11px; border: 1.5px solid #534AB7; border-radius: 8px;
+  background: transparent; color: #534AB7; font-size: 14px; font-weight: 600;
+  cursor: pointer; font-family: inherit; transition: all .2s;
+}
+.btn-secondary-outline:hover { background: #534AB7; color: #fff; }
+.login-card { display: flex; flex-direction: column; gap: 12px; }
+
+/* MIKOMI OS BRANDING */
+.auth-logo-block {
+  text-align: center;
+  margin-bottom: 8px;
+}
+.auth-brand-name {
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -1px;
+  color: #1a1a2e;
+  line-height: 1;
+}
+.auth-brand-name span {
+  color: #534AB7;
+}
+.auth-brand-sub {
+  font-size: 12px;
+  color: #999;
+  margin-top: 6px;
+  font-style: italic;
+  letter-spacing: 0.2px;
+}
+.auth-inp {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid #e5e5e5;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color .2s;
+  background: #fafafa;
+  color: #333;
+}
+.auth-inp:focus { border-color: #534AB7; background: #fff; }
+.auth-inp::placeholder { color: #bbb; }
+select.auth-inp { cursor: pointer; }
+.auth-link {
+  background: none;
+  border: none;
+  color: #534AB7;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px 0;
+  text-align: center;
+  width: 100%;
+  text-decoration: underline;
+  font-family: inherit;
+}
+.auth-link:hover { color: #A32D2D; }
+.auth-divider {
+  text-align: center;
+  font-size: 12px;
+  color: #ccc;
+  margin: 2px 0;
+}
+.auth-success {
+  color: #059669;
+  font-size: 13px;
+  background: #ecfdf5;
+  padding: 10px 14px;
+  border-radius: 8px;
+  text-align: center;
+}
+.btn-secondary-outline {
+  width: 100%;
+  padding: 11px;
+  border: 1.5px solid #534AB7;
+  border-radius: 8px;
+  background: transparent;
+  color: #534AB7;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .2s;
+}
+.btn-secondary-outline:hover { background: #534AB7; color: #fff; }
+.login-card { display: flex; flex-direction: column; gap: 12px; }

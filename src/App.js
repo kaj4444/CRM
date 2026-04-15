@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import './index.css'
-import { supabase, APP_PASSWORD } from './supabase'
+import { supabase, isTrialActive, trialDaysLeft } from './supabase'
 
 const SLACK_WEBHOOK = ['https://hooks.slack.com/services','T0AR39GDS5V','B0ARXL5FRK3','zW6FV2hAoVWdQPRuKtiUxvpA'].join('/')
 
@@ -19,7 +19,7 @@ const sendPushNotification = (title, body, onClick) => {
     body,
     icon: '/favicon.ico',
     badge: '/favicon.ico',
-    tag: 'riscare-crm',
+    tag: 'mikomi-os',
   })
   if (onClick) n.onclick = () => { window.focus(); onClick(); n.close() }
 }
@@ -143,6 +143,7 @@ const QuickUkolModal = ({ lead, onClose, onSaved }) => {
     if (!form.nazev.trim()) { alert('Zadej název úkolu'); return }
     setSaving(true)
     await supabase.from('ukoly').insert([{
+      user_id: session?.user?.id,
       ...form,
       lead_id: lead.id,
       zdroj: 'lead',
@@ -295,7 +296,7 @@ const LeadDetail = ({ lead, onEdit, onClose }) => {
   const aC = { Karel:'#534AB7', Radim:'#0F6E56', Ales:'#854F0B', Aleš:'#854F0B' }
 
   const fetchComments = useCallback(async () => {
-    const { data } = await supabase.from('comments').select('*')
+    const { data } = await supabase.from('comments').select('*').eq('user_id', session?.user?.id)
       .eq('lead_id', lead.id).order('created_at', { ascending: true })
     setComments(data || [])
     setLoadingC(false)
@@ -312,7 +313,7 @@ const LeadDetail = ({ lead, onEdit, onClose }) => {
   const sendComment = async () => {
     if (!newText.trim()) return
     setSending(true)
-    await supabase.from('comments').insert([{ lead_id: lead.id, autor, text: newText.trim() }])
+    await supabase.from('comments').insert([{ lead_id: lead.id, autor, text: newText.trim(), user_id: session?.user?.id }])
     await slackKomentar(lead.firma, autor, newText.trim())
     setNewText('')
     await fetchComments()
@@ -354,7 +355,7 @@ const LeadDetail = ({ lead, onEdit, onClose }) => {
     const { data: urlData } = supabase.storage.from('documents').getPublicUrl(fileName)
     await supabase.from('documents').insert([{
       nazev: file.name, soubor: fileName, url: urlData.publicUrl,
-      velikost: Math.round(file.size / 1024), kategorie: 'Lead dokument', lead_id: lead.id
+      velikost: Math.round(file.size / 1024), kategorie: 'Lead dokument', lead_id: lead.id, user_id: session?.user?.id
     }])
     e.target.value = ''
     setUploading(false)
@@ -1640,7 +1641,7 @@ const PdfDocuments = () => {
   const [kategorie, setKategorie] = useState('')
 
   const fetchDocs = async () => {
-    const { data } = await supabase.from('documents').select('*').order('created_at', { ascending: false })
+    const { data } = await supabase.from('documents').select('*').eq('user_id', session?.user?.id).order('created_at', { ascending: false })
     setDocs(data || [])
     setLoading(false)
   }
@@ -1662,7 +1663,8 @@ const PdfDocuments = () => {
       soubor: fileName,
       url: urlData.publicUrl,
       velikost: Math.round(file.size / 1024),
-      kategorie: kategorie || 'Obecné'
+      kategorie: kategorie || 'Obecné',
+      user_id: session?.user?.id
     }])
     e.target.value = ''
     setUploading(false)
@@ -1996,11 +1998,11 @@ const PruvodceStrategii = () => {
   useEffect(() => {
     const load = async () => {
       const [splRes, odpRes, txtRes, komRes, ordRes] = await Promise.all([
-        supabase.from('pruvodce_splneno').select('*'),
-        supabase.from('strategic_answers').select('*'),
-        supabase.from('pruvodce_texty').select('*'),
-        supabase.from('pruvodce_komentare').select('*').order('created_at', { ascending: true }),
-        supabase.from('pruvodce_order').select('*'),
+        supabase.from('pruvodce_splneno').select('*').eq('user_id', session?.user?.id),
+        supabase.from('strategic_answers').select('*').eq('user_id', session?.user?.id),
+        supabase.from('pruvodce_texty').select('*').eq('user_id', session?.user?.id),
+        supabase.from('pruvodce_komentare').select('*').eq('user_id', session?.user?.id).order('created_at', { ascending: true }),
+        supabase.from('pruvodce_order').select('*').eq('user_id', session?.user?.id),
       ])
       if (splRes.data) { const m = {}; splRes.data.forEach(r => { m[r.krok_id] = r.splneno }); setSplneno(m) }
       if (odpRes.data) { const m = {}; odpRes.data.forEach(r => { m[r.klic] = r.odpoved }); setOdpovedi(m) }
@@ -2020,7 +2022,7 @@ const PruvodceStrategii = () => {
     setTexty(prev => ({ ...prev, [klic]: hodnota }))
     const existing = texty[klic] !== undefined
     if (existing) await supabase.from('pruvodce_texty').update({ hodnota }).eq('klic', klic)
-    else await supabase.from('pruvodce_texty').insert([{ klic, hodnota }])
+    else await supabase.from('pruvodce_texty').insert([{ klic, hodnota, user_id: session?.user?.id }])
   }
 
   const getText = (krok, pole) => {
@@ -2033,14 +2035,14 @@ const PruvodceStrategii = () => {
     setSplneno(prev => ({ ...prev, [id]: nove }))
     const existing = splneno[id] !== undefined
     if (existing) await supabase.from('pruvodce_splneno').update({ splneno: nove }).eq('krok_id', id)
-    else await supabase.from('pruvodce_splneno').insert([{ krok_id: id, splneno: nove }])
+    else await supabase.from('pruvodce_splneno').insert([{ krok_id: id, splneno: nove, user_id: session?.user?.id }])
   }
 
   const sendKomentar = async (krokId) => {
     const text = komenText[krokId]?.trim()
     if (!text) return
     setSendingKomen(true)
-    const { data } = await supabase.from('pruvodce_komentare').insert([{ krok_id: krokId, autor: komenAutor, text }]).select()
+    const { data } = await supabase.from('pruvodce_komentare').insert([{ krok_id: krokId, autor: komenAutor, text, user_id: session?.user?.id }]).select()
     if (data) setKomentar(prev => ({ ...prev, [krokId]: [...(prev[krokId]||[]), data[0]] }))
     setKomenText(prev => ({ ...prev, [krokId]: '' }))
     setSendingKomen(false)
@@ -2435,7 +2437,7 @@ const StrategickyPlan = () => {
 
   useEffect(() => {
     const loadOdpovedi = async () => {
-      const { data } = await supabase.from('strategic_answers').select('*')
+      const { data } = await supabase.from('strategic_answers').select('*').eq('user_id', session?.user?.id)
       if (data) {
         const map = {}
         data.forEach(r => { map[r.klic] = r.odpoved })
@@ -2452,7 +2454,7 @@ const StrategickyPlan = () => {
     if (existing !== undefined) {
       await supabase.from('strategic_answers').update({ odpoved: text, updated_at: new Date().toISOString() }).eq('klic', klic)
     } else {
-      await supabase.from('strategic_answers').insert([{ klic, odpoved: text }])
+      await supabase.from('strategic_answers').insert([{ klic, odpoved: text, user_id: session?.user?.id }])
     }
     setUlozeno(prev => ({ ...prev, [klic]: text }))
     setSaving(false)
@@ -3186,7 +3188,7 @@ const UkolyView = ({ leads, onLeadChange }) => {
   const today = new Date().toISOString().slice(0,10)
 
   const fetchUkoly = async () => {
-    const { data } = await supabase.from('ukoly').select('*').order('created_at', { ascending: false })
+    const { data } = await supabase.from('ukoly').select('*').eq('user_id', session?.user?.id).order('created_at', { ascending: false })
     setUkoly(data || [])
     setLoading(false)
   }
@@ -3401,7 +3403,7 @@ const useCreateUkol = (leads, onUkolCreated) => {
   }
 
   const saveUkol = async (form) => {
-    await supabase.from('ukoly').insert([{ ...defaultValues, ...form }])
+    await supabase.from('ukoly').insert([{ ...defaultValues, ...form, user_id: session?.user?.id }])
     setShowModal(false)
     if (onUkolCreated) onUkolCreated()
   }
@@ -3420,9 +3422,21 @@ const useCreateUkol = (leads, onUkolCreated) => {
 
 // ─── HLAVNÍ APP ───────────────────────────────────────────────────────────────
 export default function App() {
-  const [authed, setAuthed] = useState(false)
-  const [pw, setPw] = useState('')
-  const [pwErr, setPwErr] = useState('')
+  // AUTH STATE
+  const [session, setSession] = useState(null)
+  const [authMode, setAuthMode] = useState('login') // login | register | forgot | confirm
+  const [authEmail, setAuthEmail] = useState('')
+  const [authPw, setAuthPw] = useState('')
+  const [authPw2, setAuthPw2] = useState('')
+  const [authName, setAuthName] = useState('')
+  const [authIndustry, setAuthIndustry] = useState('')
+  const [authErr, setAuthErr] = useState('')
+  const [authLoading, setAuthLoading] = useState(false)
+  const [authMsg, setAuthMsg] = useState('')
+  const [userProfile, setUserProfile] = useState(null)
+  const [showPaywall, setShowPaywall] = useState(false)
+  const [stripeLoading, setStripeLoading] = useState(false)
+
   const [leads, setLeads] = useState([])
   const [loading, setLoading] = useState(false)
   const [tab, setTab] = useState('dashboard')
@@ -3450,31 +3464,118 @@ export default function App() {
   const [filtrProd, setFiltrProd] = useState('')
   const [filtrVede, setFiltrVede] = useState('')
 
-  const login = () => {
-    if (pw === APP_PASSWORD) { setAuthed(true); setPwErr('') }
-    else setPwErr('Nesprávné heslo')
+  // AUTH FUNCTIONS
+  const doLogin = async () => {
+    setAuthErr(''); setAuthLoading(true)
+    const { error } = await supabase.auth.signInWithPassword({ email: authEmail, password: authPw })
+    if (error) setAuthErr(error.message === 'Invalid login credentials' ? 'Nesprávný email nebo heslo' : error.message)
+    setAuthLoading(false)
   }
 
+  const doRegister = async () => {
+    setAuthErr('')
+    if (!authName.trim()) return setAuthErr('Zadejte vaše jméno')
+    if (authPw.length < 8) return setAuthErr('Heslo musí mít alespoň 8 znaků')
+    if (authPw !== authPw2) return setAuthErr('Hesla se neshodují')
+    setAuthLoading(true)
+    const { error } = await supabase.auth.signUp({
+      email: authEmail,
+      password: authPw,
+      options: { data: { full_name: authName, industry: authIndustry } }
+    })
+    if (error) setAuthErr(error.message)
+    else { setAuthMode('confirm') }
+    setAuthLoading(false)
+  }
+
+  const doForgot = async () => {
+    setAuthErr(''); setAuthLoading(true)
+    const { error } = await supabase.auth.resetPasswordForEmail(authEmail, {
+      redirectTo: window.location.origin
+    })
+    if (error) setAuthErr(error.message)
+    else setAuthMsg('Email s odkazem pro reset hesla byl odeslán na ' + authEmail)
+    setAuthLoading(false)
+  }
+
+  const doLogout = async () => {
+    await supabase.auth.signOut()
+    setSession(null)
+    setUserProfile(null)
+    setShowPaywall(false)
+  }
+
+  const doStripeCheckout = async () => {
+    if (!session) return
+    setStripeLoading(true)
+    try {
+      const res = await fetch('/api/stripe-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: session.user.email, userId: session.user.id })
+      })
+      const { url } = await res.json()
+      if (url) window.location.href = url
+    } catch(e) { console.error(e) }
+    setStripeLoading(false)
+  }
+
+  // Listen na auth state changes
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => setSession(session))
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+    return () => subscription.unsubscribe()
+  }, [])
+
+  // Načíst/vytvořit profil uživatele
+  useEffect(() => {
+    if (!session) return
+    const loadProfile = async () => {
+      const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single()
+      if (data) {
+        setUserProfile(data)
+        // Zkontrolovat paywall
+        if (!isTrialActive(data)) setShowPaywall(true)
+      } else {
+        const trialEnd = new Date()
+        trialEnd.setDate(trialEnd.getDate() + 7)
+        const meta = session.user.user_metadata || {}
+        const { data: newProfile } = await supabase.from('profiles').insert([{
+          id: session.user.id,
+          email: session.user.email,
+          full_name: meta.full_name || '',
+          industry: meta.industry || 'general',
+          trial_ends_at: trialEnd.toISOString(),
+          subscription_status: 'trial'
+        }]).select().single()
+        if (newProfile) setUserProfile(newProfile)
+      }
+    }
+    loadProfile()
+  }, [session])
+
   const fetchLeads = useCallback(async () => {
+    if (!session) return
     setLoading(true)
-    const { data } = await supabase.from('leads').select('*').order('created_at', { ascending: false })
+    const { data } = await supabase.from('leads').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false })
     setLeads(data || [])
     setLoading(false)
-  }, [])
+  }, [session])
 
   const onLeadChange = useCallback(() => { fetchLeads() }, [fetchLeads])
 
   useEffect(() => {
-    if (authed) {
+    if (session) {
       fetchLeads()
-      // Požádat o push notifikace
       requestPushPermission()
     }
-  }, [authed, fetchLeads])
+  }, [session, fetchLeads])
 
   // Push notifikace pro follow-up dnes
   useEffect(() => {
-    if (!authed || !leads.length) return
+    if (!session || !leads.length) return
     const today = new Date().toISOString().slice(0,10)
     const fuDnes = leads.filter(l => l.followup === today && !l.stav?.includes('Uzavřeno'))
     if (fuDnes.length > 0 && !sessionStorage.getItem('push_fu_' + today)) {
@@ -3484,11 +3585,11 @@ export default function App() {
         fuDnes.slice(0,3).map(l => l.firma).join(', ') + (fuDnes.length > 3 ? ' a další...' : ''),
       )
     }
-  }, [leads, authed])
+  }, [leads, session])
 
   // Kontrola mrtvých leadů - při každém načtení
   useEffect(() => {
-    if (!authed || !leads.length) return
+    if (!session || !leads.length) return
     const today = new Date().toISOString().slice(0,10)
     const mrtve = leads.filter(l => {
       if (l.stav?.includes('Uzavřeno')) return false
@@ -3502,11 +3603,11 @@ export default function App() {
         mrtve.map(l => '• *' + l.firma + '* — ' + Math.round((new Date(today)-new Date(l.followup))/86400000) + ' dní bez aktivity').join('\n') +
         '\n\n👉 https://crm-two-lemon.vercel.app')
     }
-  }, [leads, authed])
+  }, [leads, session])
 
   // Týdenní Slack report každý pátek
   useEffect(() => {
-    if (!authed || !leads.length) return
+    if (!session || !leads.length) return
     const day = new Date().getDay()
     const today = new Date().toISOString().slice(0,10)
     if (day === 5 && !sessionStorage.getItem('weekly_report_' + today)) {
@@ -3520,11 +3621,11 @@ export default function App() {
         '*Revenue celkem:* ' + rev.toLocaleString('cs') + ' Kč\n' +
         '\n👉 https://crm-two-lemon.vercel.app')
     }
-  }, [leads, authed])
+  }, [leads, session])
 
   const saveLead = async (form) => {
     try {
-      const cleanForm = { ...form }
+      const cleanForm = { ...form, user_id: session?.user?.id }
       delete cleanForm.id
       delete cleanForm.created_at
       if (modal && modal.id) {
@@ -3591,17 +3692,137 @@ export default function App() {
     { id:'pruvodce', icon:'🗺️', label:'Průvodce strategií' },
   ]
 
-  if (!authed) return (
+  // AUTH SCREENS
+  if (!session) return (
     <div className="login-wrap">
       <div className="login-card">
-        <div style={{fontSize:28,marginBottom:8}}>🛡️</div>
-        <h1>riscare CRM</h1>
-        <p>Talkey a.s. · Interní systém</p>
-        <input type="password" placeholder="Heslo" value={pw}
-          onChange={e => setPw(e.target.value)}
-          onKeyDown={e => e.key==='Enter' && login()} />
-        <button className="btn-primary" onClick={login}>Přihlásit se</button>
-        {pwErr && <div className="login-error">{pwErr}</div>}
+        <div className="auth-logo-block">
+          <div className="auth-brand-name">MIKOMI <span>OS</span></div>
+          <div className="auth-brand-sub">Systém, který proměňuje potenciál v revenue.</div>
+        </div>
+
+        {authMode === 'confirm' && (
+          <div style={{textAlign:'center',padding:'16px 0'}}>
+            <div style={{fontSize:44,marginBottom:12}}>📧</div>
+            <div style={{fontWeight:700,fontSize:17,marginBottom:8}}>Zkontrolujte svůj email</div>
+            <div style={{fontSize:13,color:'#888',lineHeight:1.7}}>
+              Poslali jsme potvrzovací odkaz na<br/>
+              <strong style={{color:'#333'}}>{authEmail}</strong><br/><br/>
+              Klikněte na odkaz v emailu pro aktivaci účtu.<br/>
+              Poté se přihlaste níže.
+            </div>
+            <button className="auth-link" style={{marginTop:20}} onClick={() => setAuthMode('login')}>
+              Přejít na přihlášení →
+            </button>
+          </div>
+        )}
+
+        {authMode === 'forgot' && (
+          <>
+            <div style={{fontSize:13,color:'#888',textAlign:'center',marginBottom:16}}>
+              Zadejte email a pošleme vám odkaz pro reset hesla.
+            </div>
+            <input className="auth-inp" type="email" placeholder="Váš email" value={authEmail}
+              onChange={e => setAuthEmail(e.target.value)} autoFocus
+              onKeyDown={e => e.key==='Enter' && doForgot()} />
+            {authMsg && <div className="auth-success">{authMsg}</div>}
+            {authErr && <div className="login-error">{authErr}</div>}
+            <button className="btn-primary" onClick={doForgot} disabled={authLoading}>
+              {authLoading ? 'Odesílám...' : 'Odeslat odkaz pro reset'}
+            </button>
+            <button className="auth-link" onClick={() => { setAuthMode('login'); setAuthErr(''); setAuthMsg('') }}>
+              ← Zpět na přihlášení
+            </button>
+          </>
+        )}
+
+        {authMode === 'login' && (
+          <>
+            <input className="auth-inp" type="email" placeholder="Email" value={authEmail}
+              onChange={e => setAuthEmail(e.target.value)} autoFocus />
+            <input className="auth-inp" type="password" placeholder="Heslo" value={authPw}
+              onChange={e => setAuthPw(e.target.value)}
+              onKeyDown={e => e.key==='Enter' && doLogin()} />
+            {authErr && <div className="login-error">{authErr}</div>}
+            <button className="btn-primary" onClick={doLogin} disabled={authLoading}>
+              {authLoading ? 'Přihlašuji...' : 'Přihlásit se →'}
+            </button>
+            <button className="auth-link" onClick={() => { setAuthMode('forgot'); setAuthErr(''); setAuthMsg('') }}>
+              Zapomněli jste heslo?
+            </button>
+            <div className="auth-divider">— nebo —</div>
+            <button className="btn-secondary-outline" onClick={() => { setAuthMode('register'); setAuthErr('') }}>
+              Vytvořit účet zdarma · 7 dní trial
+            </button>
+          </>
+        )}
+
+        {authMode === 'register' && (
+          <>
+            <div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:8,padding:'10px 14px',fontSize:13,color:'#166534',marginBottom:4}}>
+              ✅ 7 dní zdarma · poté 497 Kč/měsíc · zrušit kdykoli
+            </div>
+            <input className="auth-inp" type="text" placeholder="Vaše jméno" value={authName}
+              onChange={e => setAuthName(e.target.value)} autoFocus />
+            <input className="auth-inp" type="email" placeholder="Email" value={authEmail}
+              onChange={e => setAuthEmail(e.target.value)} />
+            <input className="auth-inp" type="password" placeholder="Heslo (min. 8 znaků)" value={authPw}
+              onChange={e => setAuthPw(e.target.value)} />
+            <input className="auth-inp" type="password" placeholder="Potvrďte heslo" value={authPw2}
+              onChange={e => setAuthPw2(e.target.value)}
+              onKeyDown={e => e.key==='Enter' && doRegister()} />
+            <select className="auth-inp" value={authIndustry} onChange={e => setAuthIndustry(e.target.value)}>
+              <option value="">Vyberte odvětví (volitelné)</option>
+              <option value="real-estate">🏠 Reality / Nemovitosti</option>
+              <option value="cybersecurity">🛡️ Kybernetická bezpečnost</option>
+              <option value="finance">💳 Finance / Pojišťovnictví</option>
+              <option value="it">💻 IT / Technologie</option>
+              <option value="general">🏢 Obecné / Jiné</option>
+            </select>
+            {authErr && <div className="login-error">{authErr}</div>}
+            <button className="btn-primary" onClick={doRegister} disabled={authLoading}>
+              {authLoading ? 'Vytvářím účet...' : 'Začít 7 dní zdarma →'}
+            </button>
+            <div style={{fontSize:11,color:'#aaa',textAlign:'center',lineHeight:1.6}}>
+              Po registraci obdržíte potvrzovací email.<br/>
+              Kreditní karta není potřeba pro trial.
+            </div>
+            <button className="auth-link" onClick={() => { setAuthMode('login'); setAuthErr('') }}>
+              Již máte účet? Přihlásit se
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  )
+
+  // PAYWALL SCREEN
+  if (showPaywall) return (
+    <div className="login-wrap">
+      <div className="login-card" style={{maxWidth:460}}>
+        <div className="auth-logo-block">
+          <div className="auth-brand-name">MIKOMI <span>OS</span></div>
+        </div>
+        <div style={{textAlign:'center',padding:'8px 0 16px'}}>
+          <div style={{fontSize:40,marginBottom:12}}>🔐</div>
+          <div style={{fontWeight:700,fontSize:20,marginBottom:8}}>Váš trial vypršel</div>
+          <div style={{fontSize:14,color:'#888',lineHeight:1.7,marginBottom:20}}>
+            Pro pokračování v používání MIKOMI OS aktivujte předplatné.<br/>
+            Všechna vaše data jsou bezpečně uložena a čekají na vás.
+          </div>
+          <div style={{background:'#faf9ff',border:'1px solid #e0dbff',borderRadius:12,padding:'20px',marginBottom:20}}>
+            <div style={{fontSize:36,fontWeight:800,color:'#534AB7',letterSpacing:'-1px'}}>497 Kč<span style={{fontSize:16,fontWeight:400,color:'#888'}}>/měsíc</span></div>
+            <div style={{fontSize:13,color:'#666',marginTop:8}}>
+              ✓ Neomezené leady &nbsp;·&nbsp; ✓ AI asistent &nbsp;·&nbsp; ✓ Všechny funkce
+            </div>
+          </div>
+          <button className="btn-primary" onClick={doStripeCheckout} disabled={stripeLoading}
+            style={{fontSize:16,padding:'14px 32px',borderRadius:10}}>
+            {stripeLoading ? 'Přesměrovávám...' : 'Aktivovat předplatné →'}
+          </button>
+          <div style={{fontSize:12,color:'#aaa',marginTop:12}}>Bezpečná platba přes Stripe · Zrušit kdykoli</div>
+        </div>
+        <button className="auth-link" onClick={doLogout} style={{marginTop:8}}>Odhlásit se</button>
       </div>
     </div>
   )
@@ -3614,7 +3835,7 @@ export default function App() {
       {/* Mobile top bar */}
       <div className="mobile-topbar">
         <div style={{display:'flex',alignItems:'center',gap:0}}>
-          <span className="mob-logo">riscare</span>
+          <span className="mob-logo">MIKOMI OS</span>
           <span className="mob-tab"> · {{kanban:'Pipeline',table:'Tabulka',followup:'Follow-up',ukoly:'Úkoly',multiplikatori:'Multiplikátoři',discovery:'Discovery',email:'Emaily',dokumenty:'Dokumenty',strategie:'Strategie',produkty:'Produkty',pruvodce:'Průvodce'}[tab]||tab}</span>
         </div>
         <button className="hamburger-btn" onClick={() => setDrawerOpen(true)} aria-label="Menu">
@@ -3629,8 +3850,8 @@ export default function App() {
           <div className="drawer-panel">
             <div className="drawer-head">
               <div>
-                <div className="logo" style={{color:'#534AB7',fontWeight:600,fontSize:15}}>riscare CRM</div>
-                <div style={{fontSize:11,color:'#999',marginTop:2}}>Talkey a.s.</div>
+                <div className="logo" style={{color:'#534AB7',fontWeight:600,fontSize:15}}>MIKOMI OS</div>
+                <div style={{fontSize:11,color:'#999',marginTop:2}}>Systém, který proměňuje potenciál v revenue.</div>
               </div>
               <button className="drawer-close" onClick={() => setDrawerOpen(false)}>&times;</button>
             </div>
@@ -3652,8 +3873,14 @@ export default function App() {
               )
             })}
             <div className="sidebar-user">
-              <div>Karel Petros</div>
-              <button className="logout-btn" onClick={() => { setAuthed(false); setDrawerOpen(false) }}>Odhlásit se</button>
+              <div style={{fontWeight:600}}>{userProfile?.full_name || session?.user?.email || "Uživatel"}</div>
+              {userProfile?.subscription_status === 'trial' && (
+                <div style={{fontSize:11,color:'#f59e0b',marginTop:2}}>⏳ Trial: {trialDaysLeft(userProfile)} dní zbývá</div>
+              )}
+              {userProfile?.subscription_status === 'active' && (
+                <div style={{fontSize:11,color:'#10b981',marginTop:2}}>✓ Aktivní předplatné</div>
+              )}
+              <button className="logout-btn" onClick={() => { doLogout(); setDrawerOpen(false) }}>Odhlásit se</button>
             </div>
           </div>
         </div>
@@ -3661,8 +3888,8 @@ export default function App() {
 
       <div className="sidebar">
         <div className="sidebar-logo">
-          <div className="logo">riscare CRM</div>
-          <div className="sub">Talkey a.s.</div>
+          <div className="logo">MIKOMI OS</div>
+          <div className="sub">Systém, který proměňuje potenciál v revenue.</div>
         </div>
         {navOrder.map((nid, idx) => {
           const n = NAV.find(x => x.id === nid)
@@ -3705,12 +3932,12 @@ export default function App() {
           )
         })}
         <div className="sidebar-user">
-          <div>Karel Petros</div>
+          <div>{userProfile?.full_name || session?.user?.email || "Uživatel"}</div>
           <button className="logout-btn" style={{marginBottom:6}} onClick={async () => {
             const ok = await requestPushPermission()
             alert(ok ? '✓ Push notifikace povoleny!' : 'Notifikace nejsou povoleny — povol je v nastavení prohlížeče.')
           }}>🔔 Notifikace</button>
-          <button className="logout-btn" onClick={() => setAuthed(false)}>Odhlásit se</button>
+          <button className="logout-btn" onClick={() => doLogout()}>Odhlásit se</button>
         </div>
       </div>
 

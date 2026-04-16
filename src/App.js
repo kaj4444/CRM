@@ -83,6 +83,14 @@ const STAV_STYLES = {
   'Uzavřeno — vyhráno': { bg:'#EAF3DE', color:'#27500A' },
   'Uzavřeno — prohráno': { bg:'#FCEBEB', color:'#791F1F' },
   'Odloženo': { bg:'#F1EFE8', color:'#5F5E5A' },
+  // Consulting stages
+  'Úvodní schůzka domluvena': { bg:'#FAEEDA', color:'#854F0B' },
+  'Úvodní schůzka proběhla': { bg:'#E1F5EE', color:'#0F6E56' },
+  'Smlouva podepsána': { bg:'#EAF3DE', color:'#3B6D11' },
+  'Projekt zahájen': { bg:'#EEEDFE', color:'#534AB7' },
+  'Průběh projektu': { bg:'#FAEEDA', color:'#633806' },
+  'Uzavřeno — dokončeno': { bg:'#EAF3DE', color:'#27500A' },
+  'Uzavřeno — zrušeno': { bg:'#FCEBEB', color:'#791F1F' },
   // Real-estate stages
   'Poptávka': { bg:'#E6F1FB', color:'#185FA5' },
   'Prohlídka domluvena': { bg:'#FAEEDA', color:'#854F0B' },
@@ -155,24 +163,24 @@ const INDUSTRY_CONFIG = {
     extraFields: ['lokalita','dispozice','plocha'],
   },
   general: {
-    label: 'Jiné',
-    stavs: ['Lead','Kontaktováno','Schůzka domluvena','Schůzka proběhla',
-      'Nabídka odeslána','Vyjednávání','Uzavřeno — vyhráno','Uzavřeno — prohráno','Odloženo'],
-    kanbanStavs: ['Lead','Kontaktováno','Schůzka domluvena','Schůzka proběhla',
-      'Nabídka odeslána','Vyjednávání','Uzavřeno — vyhráno'],
+    label: 'Consulting',
+    stavs: ['Poptávka','Úvodní schůzka domluvena','Úvodní schůzka proběhla','Nabídka odeslána',
+      'Smlouva podepsána','Projekt zahájen','Průběh projektu','Uzavřeno — dokončeno','Uzavřeno — zrušeno','Odloženo'],
+    kanbanStavs: ['Poptávka','Úvodní schůzka domluvena','Úvodní schůzka proběhla','Nabídka odeslána',
+      'Smlouva podepsána','Projekt zahájen','Uzavřeno — dokončeno'],
     emptyLead: {
-      firma:'', osoba:'', role:'CEO', segment:'Přímý klient',
-      email:'', telefon:'', odvetvi:'Jiné', zdroj:'Vlastní síť',
-      produkt:'Služba', stav:'Lead', cena:'', prob:'Nízká (0–30 %)',
+      firma:'', osoba:'', role:'CEO / Majitel', segment:'Přímý klient',
+      email:'', telefon:'', odvetvi:'Management / strategie', zdroj:'Vlastní síť',
+      produkt:'Strategický audit', stav:'Poptávka', cena:'', prob:'Nízká (0–30 %)',
       vede:'Karel', followup:'', d1:'', namitka:'', poznamky:'', stitky:''
     },
-    firmLabel: 'Název firmy / klienta',
-    klientLabel: 'Kontaktní osoba',
-    produkty: ['Služba','Produkt','Konzultace','Jiné'],
-    segmenty: ['Přímý klient','Referral','Partner','Enterprise'],
-    odvetvi: ['IT','Finance','Výroba','Obchod','Zdravotnictví','Jiné'],
-    role: ['CEO','CFO','Manažer','Jiná'],
-    namitky: ['','Cena','Timing','Potřebuje schválení','Není zájem','Jiné'],
+    firmLabel: 'Název klienta / firmy',
+    klientLabel: 'Kontaktní osoba (jméno)',
+    produkty: ['Strategický audit','HR audit a doporučení','Organizační rozvoj','Leadership program','Change management','Firemní vzdělávání / workshop','Mentoring managementu','Retainer / měsíční spolupráce','Týmový rozvoj','Diagnostika firemní kultury'],
+    segmenty: ['Přímý klient','Referral','Enterprise (500+ zaměstnanců)','SME (do 500 zaměstnanců)','Veřejný sektor','Scale-up'],
+    odvetvi: ['Management / strategie','HR a lidé','Výroba','Finance a bankovnictví','IT a tech','Zdravotnictví','Retail a e-commerce','Logistika','Jiné'],
+    role: ['CEO / Majitel','HR ředitel','COO','CFO','Manažer týmu','L&D manažer','Board member','Jiná'],
+    namitky: ['','Cena','Timing / kapacity','Interní řešení','Potřebuje schválení boardu','Rozpočet','Není zájem','Jiné'],
     extraFields: null,
   }
 }
@@ -1079,8 +1087,9 @@ const phases = [
 ]
 
 const DiscoveryScript = ({ industry }) => {
-  const activePhasesData = industry === 'real-estate' ? phasesRE : phases
-  const discoveryTitle = industry === 'real-estate' ? 'Script prodejní schůzky' : 'Discovery Call Script'
+  const isCons = industry !== 'real-estate' && industry !== 'cybersecurity'
+  const activePhasesData = industry === 'real-estate' ? phasesRE : isCons ? phasesConsulting : phases
+  const discoveryTitle = industry === 'real-estate' ? 'Script prodejní schůzky' : isCons ? 'Script konzultační schůzky' : 'Discovery Call Script'
   const [current, setCurrent] = useState(0)
   const [checked, setChecked] = useState({})
   const [openNamitka, setOpenNamitka] = useState(null)
@@ -1690,6 +1699,326 @@ Key Account Manager | Talkey a.s. | riscare`,
 }
 
 
+
+// ─── CONSULTING EMAIL TEMPLATES ──────────────────────────────────────────────
+const emailTemplatesConsulting = {
+  'Strategický audit': {
+    'První kontakt': {
+      subject: 'Strategický audit — kde přesně stojí vaše firma?',
+      body: `Dobrý den [Jméno],
+
+dostal jsem se k vám přes [zdroj]. Zaujalo mě co děláte v [odvětví].
+
+Vidím u firem vaší velikosti jeden vzorec: strategické priority jsou nastavené, ale realita organizace za nimi zaostává. Výsledkem jsou zpomalená rozhodnutí a přetížení klíčoví lidé.
+
+Náš Strategický audit je strukturovaná 2–4týdenní diagnostika. Výstup: prioritizovaný akční plán.
+
+Má smysl si o tom promluvit 30 minut?
+
+S pozdravem
+[Vaše jméno]`
+    },
+    'Po úvodní schůzce': {
+      subject: 'Shrnutí schůzky — Strategický audit pro [Firma]',
+      body: `Dobrý den [Jméno],
+
+díky za dnešní rozhovor. Hlavní výzvy které jste zmínil/a:
+• [výzva 1]
+• [výzva 2]
+
+Navrhuji: Strategický audit [X týdnů] — rozhovory s klíčovými lidmi, analýza procesů, výstupní zpráva.
+
+Cena: [X] Kč bez DPH | Start: [datum]
+
+Pošlu návrh smlouvy v příštích dnech.
+
+S pozdravem
+[Vaše jméno]`
+    },
+    'Follow-up': {
+      subject: 'Navazuji — Strategický audit [Firma]',
+      body: `Dobrý den [Jméno],
+
+navazuji na schůzku z [datum]. [Hlavní výzva] se mi zdá jako skutečná priorita.
+
+Hodí se hovor tento nebo příští týden?
+
+S pozdravem
+[Vaše jméno]`
+    },
+    'Uzavření': {
+      subject: 'Smlouva — Strategický audit [Firma]',
+      body: `Dobrý den [Jméno],
+
+v příloze zasílám návrh smlouvy.
+
+Rozsah: [X týdnů] | Start: [datum] | Cena: [X] Kč bez DPH
+Platba: 50 % při podpisu, 50 % po předání výstupu
+
+Jakmile potvrdíte, domluvíme kick-off.
+
+S pozdravem
+[Vaše jméno]`
+    }
+  },
+  'HR audit a doporučení': {
+    'První kontakt': {
+      subject: 'HR audit — víte kde vaše organizace ztrácí talenty?',
+      body: `Dobrý den [Jméno],
+
+propojili jsme se přes [zdroj]. Firmy v rychlé fázi růstu čelí podobnému problému: HR procesy pro 50 lidí přestávají fungovat pro 150. Talenti odcházejí, onboarding je pomalý.
+
+Náš HR audit odhalí kde jsou trhlinky. Výstup: doporučení s prioritami na 3, 6 a 12 měsíců.
+
+Má smysl si promluvit?
+
+S pozdravem
+[Vaše jméno]`
+    },
+    'Po úvodní schůzce': {
+      subject: 'Shrnutí schůzky — HR audit [Firma]',
+      body: `Dobrý den [Jméno],
+
+díky za otevřený rozhovor. Klíčové výzvy:
+• [výzva 1]
+• [výzva 2]
+
+Navrhuji: HR audit [3–4 týdny] — dotazníky, rozhovory, výstupní workshop.
+
+Cena: [X] Kč bez DPH. Mohu zaslat detailní návrh?
+
+S pozdravem
+[Vaše jméno]`
+    },
+    'Follow-up': {
+      subject: 'HR audit — jak to vypadá z vaší strany?',
+      body: `Dobrý den [Jméno],
+
+navazuji. Pokud potřebujete reference z podobných projektů, rád je zašlu.
+
+S pozdravem
+[Vaše jméno]`
+    },
+    'Uzavření': {
+      subject: 'Smlouva — HR audit [Firma]',
+      body: `Dobrý den [Jméno],
+
+v příloze zasílám smlouvu.
+
+Rozsah: [X týdnů] | Start: [datum] | Cena: [X] Kč bez DPH
+
+Po podpisu domluvíme kick-off a harmonogram rozhovorů.
+
+S pozdravem
+[Vaše jméno]`
+    }
+  },
+  'Leadership program': {
+    'První kontakt': {
+      subject: 'Leadership program — rozvoj manažerů který přináší výsledky',
+      body: `Dobrý den [Jméno],
+
+dostal jsem se k vám přes [zdroj]. Nejčastější problém u manažerů: jsou skvělí odborníci, ale leadership dovednosti za odborností zaostávají.
+
+Náš Leadership program kombinuje skupinové workshopy, individuální koučink a praktická zadání. Výsledky měřitelné do 90 dní.
+
+Hodí se 20 minut?
+
+S pozdravem
+[Vaše jméno]`
+    },
+    'Po úvodní schůzce': {
+      subject: 'Leadership program — návrh pro [Firma]',
+      body: `Dobrý den [Jméno],
+
+navrhuji: [X workshopů] + individuální koučink, délka [X měsíců], [X] účastníků.
+
+Obsah: diagnostika kompetencí → skupinové workshopy → individuální koučink → závěrečné hodnocení.
+
+Cena: [X] Kč bez DPH. Mohu zaslat detailní program?
+
+S pozdravem
+[Vaše jméno]`
+    },
+    'Follow-up': {
+      subject: 'Leadership program — máte otázky?',
+      body: `Dobrý den [Jméno],
+
+navazuji. Pokud váháte nad formátem, rád program upravím.
+
+S pozdravem
+[Vaše jméno]`
+    },
+    'Uzavření': {
+      subject: 'Smlouva — Leadership program [Firma]',
+      body: `Dobrý den [Jméno],
+
+v příloze zasílám smlouvu a harmonogram.
+
+Start: [datum] | Účastníků: [X] | Cena: [X] Kč bez DPH
+
+Těším se na spolupráci.
+
+S pozdravem
+[Vaše jméno]`
+    }
+  },
+  'Retainer / měsíční spolupráce': {
+    'První kontakt': {
+      subject: 'Strategický partner na retainer — jiný přístup ke konzultacím',
+      body: `Dobrý den [Jméno],
+
+nabízím retainer model: jsem k dispozici jako váš externím strategický nebo HR partner každý měsíc. Bez zdlouhavého onboardování — rovnou k věci.
+
+Typicky pomáhám se strategickými rozhodnutími, HR procesy, leadership coachingem a přípravou na změny.
+
+Hodí se krátký hovor?
+
+S pozdravem
+[Vaše jméno]`
+    },
+    'Po úvodní schůzce': {
+      subject: 'Retainer spolupráce — návrh pro [Firma]',
+      body: `Dobrý den [Jméno],
+
+navrhuji měsíčně: [X hodin] konzultací + ad-hoc dostupnost + review priorit.
+
+Cena: [X] Kč/měsíc bez DPH | Minimum: 3 měsíce | Výpověď: 1 měsíc
+
+S pozdravem
+[Vaše jméno]`
+    },
+    'Follow-up': {
+      subject: 'Retainer — jak to vidíte?',
+      body: `Dobrý den [Jméno],
+
+navazuji. Pokud by pomohlo upravit rozsah, rád se přizpůsobím.
+
+S pozdravem
+[Vaše jméno]`
+    },
+    'Uzavření': {
+      subject: 'Smlouva o retainer spolupráci — [Firma]',
+      body: `Dobrý den [Jméno],
+
+v příloze zasílám smlouvu.
+
+Start: [datum] | Paušál: [X] Kč/měsíc bez DPH
+
+Těším se na spolupráci.
+
+S pozdravem
+[Vaše jméno]`
+    }
+  }
+}
+
+// ─── CONSULTING DISCOVERY PHASES ─────────────────────────────────────────────
+const phasesConsulting = [
+  { id:'prep', label:'Příprava', title:'Příprava před schůzkou', meta:'10 minut před schůzkou',
+    script: null,
+    questions:['Prostudoval jsem web a LinkedIn klienta','Znám velikost firmy a odvětví','Vím kdo se schůzky účastní','Mám hypotézu o jejich hlavní výzvě','Připravil jsem 3 otázky které otevřou rozhovor'],
+    tips:{ label:'Příprava je 70 % úspěchu', items:['Projdi LinkedIn — co komunikují posledních 6 měsíců?','Web — co zdůrazňují, co chybí?','Google — co se o nich píše?','Připrav hypotézu: „Tipuju že jejich výzva je..."'] },
+    namitky: null
+  },
+  { id:'open', label:'Otevření', title:'Otevření schůzky', meta:'0–5 min · Nastavit tón',
+    script:{ label:'Jak otevřít', text:'„Jsem rád že se potkáváme. Plánoval jsem nám 45 minut — chci nejdřív pochopit vaši situaci, pak ukázat jak uvažujeme o podobných výzvách, a na konci se rozhodnemé jestli dává smysl jít dál. Hodí se vám to tak?"' },
+    questions:['Klient souhlasil s agendou','Atmosféra je uvolněná','Vím kdo je v místnosti a jaká je role'],
+    tips:{ label:'Proč to funguje', items:['Souhlas s agendou = první micro-yes','„Rozhodnemé" — ne „přesvědčím vás"','70:30 pravidlo — ptej se víc než mluvíš'] },
+    namitky: null
+  },
+  { id:'diag', label:'Diagnostika', title:'Diagnostika situace', meta:'5–20 min · Klíčová fáze',
+    script:{ label:'Otevírací otázka', text:'„Řekněte mi — jak byste popsali kde vaše firma stojí teď a co vás nejvíc zaměstnává? Rád slyším vaši perspektivu bez filtrů."' },
+    questions:['Znám hlavní business výzvu','Vím co se děje s lidmi / organizací','Znám historii — co zkoušeli a proč nefungovalo','Rozumím rozhodovacímu procesu','Identifikoval jsem skutečnou bolest','Vím jaký je jejich horizont'],
+    tips:{ label:'Otázky které otvírají', items:['„Co vás na tom nejvíc frustruje?"','„Jak to ovlivňuje váš tým?"','„Co jste už zkoušeli?"','„Jak to vypadá za 12 měsíců pokud se nic nezmění?"','Ticho je váš kamarád'] },
+    namitky: null
+  },
+  { id:'edu', label:'Perspektiva', title:'Sdílení perspektivy', meta:'20–30 min · Přidat hodnotu',
+    script:{ label:'Jak sdílet pohled', text:'„Na základě toho co jste sdílel/a — vidím podobný vzorec u firem ve vaší situaci. Pracoval jsem s [podobná firma] kde jsme to řešili tím že [přístup]. Jak to rezonuje s vaší realitou?"' },
+    questions:['Sdílel jsem konkrétní poznatek','Použil jsem příklad z praxe','Klient potvrdil nebo korigoval hypotézu','Vytvořil jsem pocit že rozumím situaci'],
+    tips:{ label:'Jak být relevantní', items:['Mluv o jejich situaci ne o svých službách','Reference > obecné tvrzení','Ptej se „Jak to rezonuje?"','Buď ochotný říct „Tady si nejsem jistý"'] },
+    namitky: null
+  },
+  { id:'offer', label:'Nabídka', title:'Prezentace spolupráce', meta:'30–40 min · Konkrétní návrh',
+    script:{ label:'Jak nabídnout', text:'„Vidím tři možné cesty — [možnost A: rychlá diagnostika], [možnost B: projekt], [možnost C: retainer]. Která dává smysl pro váš kontext?"' },
+    questions:['Nabídl jsem varianty ne jednu možnost','Zmínil jsem cenu přirozeně','Nechal jsem klienta vybrat','Zmínil jsem reference'],
+    tips:{ label:'Cenový rozhovor', items:['Cenu řekni sebevědomě bez omluv','Nikdy nesniž cenu bez změny rozsahu','Vždy vracej k hodnotě a výsledku'] },
+    namitky: [
+      { q:'„Je to moc drahé."', a:'„Rozumím. Jaký výsledek by tuto investici ospravedlnil?"' },
+      { q:'„Potřebuji to probrat s boardem."', a:'„Samozřejmě. Co by potřeboval vidět? Mohu připravit shrnutí přímo pro něj."' },
+      { q:'„Nemáme kapacity."', a:'„Kdy by byl správný čas? Co by se muselo stát?"' },
+      { q:'„Zvažujeme více dodavatelů."', a:'„Co bude klíčové při výběru? Rád ukážu jak přemýšlíme o vašem problému."' },
+      { q:'„Řešíme to interně."', a:'„Jak daleko jste? Někdy má smysl externího partnera pro nezávislý pohled."' },
+    ]
+  },
+  { id:'close', label:'Uzavření', title:'Next step a uzavření', meta:'40–45 min · Konkrétní krok',
+    script:{ label:'Jak uzavřít', text:'„Výborně. Co je logický další krok z vaší strany? Z mé pošlu do [datum] návrh smlouvy. Kdy byste se mohli vyjádřit?"' },
+    questions:['Dohodli jsme next step s datem','Vím kdo se zapojí do rozhodnutí','Do 24h pošlu follow-up shrnutí','Neopustil jsem schůzku bez závěru'],
+    tips:{ label:'Pravidla uzavření', items:['Vždy konkrétní next step — nikdy „ozvu se"','Zájem → smlouva do 48 hodin','Váhání → zjisti co chybí k rozhodnutí','„Koho ve svém okolí by mohlo naše téma zajímat?"'] },
+    namitky: null
+  },
+]
+
+// ─── CONSULTING PRODUKTY INFO ─────────────────────────────────────────────────
+const PRODUKTY_INFO_CONSULTING = {
+  'Strategický audit': {
+    popis: 'Strukturovaná diagnostika strategie, procesů a organizace. Výstup: prioritizovaný akční plán.',
+    cena: 'Od 80 000 Kč',
+    typ: 'Jednorázový projekt (2–4 týdny)',
+    barva: '#534AB7', bg: '#EEEDFE',
+    usp: ['Rychlá diagnostika bez dlouhého onboardingu','Nezávislý pohled zvenčí','Konkrétní priority ne obecné doporučení','Výstupní workshop pro management'],
+  },
+  'HR audit a doporučení': {
+    popis: 'Komplexní analýza HR procesů — nábor, onboarding, retence, rozvoj. Doporučení s prioritami na 3, 6 a 12 měsíců.',
+    cena: 'Od 60 000 Kč',
+    typ: 'Jednorázový projekt (3–4 týdny)',
+    barva: '#0F6E56', bg: '#E1F5EE',
+    usp: ['Rozhovory s klíčovými lidmi i zaměstnanci','Dotazníkové šetření firemní kultury','Benchmarking vůči trhu','Praktický plán implementace'],
+  },
+  'Organizační rozvoj': {
+    popis: 'Změna struktury, procesů nebo kultury. Od diagnostiky přes design až po implementaci.',
+    cena: 'Od 150 000 Kč',
+    typ: 'Střednědobý projekt (2–6 měsíců)',
+    barva: '#185FA5', bg: '#E6F1FB',
+    usp: ['End-to-end doprovázení celou změnou','Zapojení zaměstnanců do designu','Komunikační strategie','Měření adopce a výsledků'],
+  },
+  'Leadership program': {
+    popis: 'Rozvoj manažerů — skupinové workshopy + individuální koučink + praktická zadání.',
+    cena: 'Od 120 000 Kč (skupina do 12 osob)',
+    typ: 'Program (3–6 měsíců)',
+    barva: '#854F0B', bg: '#FAEEDA',
+    usp: ['Diagnostika kompetencí na začátku a konci','Obsah stavěný na reálných situacích klienta','Individuální koučink pro každého','Měřitelné výsledky do 90 dní'],
+  },
+  'Change management': {
+    popis: 'Řízení organizační změny — fúze, transformace, digitalizace, restrukturalizace.',
+    cena: 'Individuální podle rozsahu',
+    typ: 'Dlouhodobý projekt (3–12 měsíců)',
+    barva: '#633806', bg: '#FDF3E7',
+    usp: ['Strukturovaný framework','Stakeholder management a komunikace','Training manažerů pro vedení změny','Průběžné měření a korekce'],
+  },
+  'Firemní vzdělávání / workshop': {
+    popis: 'Workshop na míru — strategie, leadership, komunikace, prodej, zákaznická zkušenost.',
+    cena: 'Od 25 000 Kč / den',
+    typ: 'Jednorázový (1–2 dny)',
+    barva: '#27500A', bg: '#EAF3DE',
+    usp: ['100% obsah na míru','Praktická cvičení ne přednášky','Akční plány účastníků','Možnost follow-up po 30 dnech'],
+  },
+  'Mentoring managementu': {
+    popis: 'Individuální doprovázení CEO, HR ředitele nebo klíčového manažera.',
+    cena: 'Od 15 000 Kč / měsíc',
+    typ: 'Opakující se (3–12 měsíců)',
+    barva: '#791F1F', bg: '#FCEBEB',
+    usp: ['Jeden na jednoho','Plná důvěrnost','Kombinace koučinku a poradenství','Rychlá dostupnost při urgentních situacích'],
+  },
+  'Retainer / měsíční spolupráce': {
+    popis: 'Externální strategický nebo HR partner na měsíční bázi.',
+    cena: 'Od 20 000 Kč / měsíc',
+    typ: 'Opakující se (min. 3 měsíce)',
+    barva: '#185FA5', bg: '#E6F1FB',
+    usp: ['Rychlá dostupnost bez onboardingu','Flexibilní zaměření podle priorit','Přístup k síti specialistů','Platíte za výsledky'],
+  },
+}
+
 // ─── REAL ESTATE EMAIL TEMPLATES ──────────────────────────────────────────────
 const emailTemplatesRE = {
   'Prodej nemovitosti': {
@@ -1952,9 +2281,10 @@ const phasesRE = [
 
 const EmailTemplates = ({ industry }) => {
   const isRE = industry === 'real-estate'
+  const isCons = !isRE && industry !== 'cybersecurity'
   const cfg = getIndustryCfg(industry)
-  const activeTemplates = isRE ? emailTemplatesRE : emailTemplates
-  const activeFaze = isRE ? ['První kontakt','Po prohlídce','Follow-up','Uzavření'] : FAZE
+  const activeTemplates = isRE ? emailTemplatesRE : isCons ? emailTemplatesConsulting : emailTemplates
+  const activeFaze = isRE ? ['První kontakt','Po prohlídce','Follow-up','Uzavření'] : isCons ? ['První kontakt','Po úvodní schůzce','Follow-up','Uzavření'] : FAZE
   const [produkt, setProdukt] = useState(cfg.produkty[0])
   const [faze, setFaze] = useState(activeFaze[0])
   const [copied, setCopied] = useState(false)
@@ -2726,7 +3056,7 @@ const PRODUKTY_INFO_RE = {
 }
 
 const ProduktyPrehled = ({ industry }) => {
-  const activeInfo = industry === 'real-estate' ? PRODUKTY_INFO_RE : PRODUKTY_INFO
+  const activeInfo = industry === 'real-estate' ? PRODUKTY_INFO_RE : (industry !== 'cybersecurity') ? PRODUKTY_INFO_CONSULTING : PRODUKTY_INFO
   const vsechny = Object.entries(activeInfo)
   return (
     <div>
@@ -4124,7 +4454,7 @@ export default function App() {
   const NAV = [
     { id:'dashboard', icon:'📊', label:'Dashboard' },
     { id:'kanban', icon:'⬛', label: (userProfile?.industry || 'general') === 'real-estate' ? 'Pipeline' : 'Kanban' },
-    { id:'table', icon:'☰', label:'Tabulka' },
+    { id:'table', icon:'☰', label: (userProfile?.industry||'general')==='cybersecurity' ? 'Tabulka' : 'Přehled klientů' },
     { id:'followup', icon:'📅', label: (userProfile?.industry || 'general') === 'real-estate' ? 'Dnešní akce' : 'Follow-up dnes' },
     { id:'ukoly', icon:'✅', label:'Úkoly' },
     { id:'multiplikatori', icon:'🤝', label: (userProfile?.industry || 'general') === 'real-estate' ? 'Partneři / referrali' : 'Multiplikátoři' },
@@ -4428,7 +4758,7 @@ export default function App() {
                 <option value="">Všichni</option>
                 {['Karel','Radim','Aleš'].map(o=><option key={o}>{o}</option>)}
               </select>
-              <button className="btn accent" onClick={() => setModal('new')}>{(userProfile?.industry || 'general') === 'real-estate' ? '+ Nový klient' : '+ Nový lead'}</button>
+              <button className="btn accent" onClick={() => setModal('new')}>{(userProfile?.industry||'general')==='real-estate' ? '+ Nový klient' : (userProfile?.industry||'general')==='cybersecurity' ? '+ Nový lead' : '+ Nový projekt'}</button>
         <button className="btn" onClick={() => {
           const cols = ['Firma','Osoba','Role','Segment','Email','Produkt','Stav','Cena','Vede','Follow-up']
           const rows = filtered.map(l => [l.firma,l.osoba,l.role,l.segment,l.email,l.produkt,l.stav,l.cena,l.vede,l.followup])

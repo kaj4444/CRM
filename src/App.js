@@ -381,6 +381,102 @@ const QuickUkolModal = ({ lead, onClose, onSaved }) => {
 
 const LeadDetail = ({ lead, onEdit, onClose }) => {
   const [activeTab, setActiveTab] = useState('aktivita')
+  const [nabidka, setNabidka] = useState(lead.nabidka || '')
+  const [nabidkaLoading, setNabidkaLoading] = useState(false)
+  const [nabidkaSaved, setNabidkaSaved] = useState(false)
+
+  const generateNabidka = async () => {
+    if (!lead.firma) return alert('Lead musí mít název firmy.')
+    setNabidkaLoading(true)
+    try {
+      const webQuery = [lead.firma, lead.email ? lead.email.split('@')[1] : '', lead.odvetvi || ''].filter(Boolean).join(' ')
+      const produktyInfo = lead.produkt ? `Navrhovaný produkt/služba: ${lead.produkt}` : ''
+      const prompt = `Jsi expert na B2B prodej a psychologii přesvědčování. Tvým úkolem je vytvořit personalizovanou obchodní nabídku.
+
+KLIENT:
+- Název firmy: ${lead.firma}
+- Kontakt: ${lead.osoba || 'neznámý'} (${lead.role || ''})
+- Odvětví: ${lead.odvetvi || 'nespecifikováno'}
+- Segment: ${lead.segment || ''}
+${produktyInfo}
+- Poznámky o klientovi: ${lead.poznamky || 'žádné'}
+
+INSTRUKCE:
+1. Prohledej dostupné informace o firmě "${lead.firma}"${lead.email ? ' (' + lead.email.split('@')[1] + ')' : ''}
+2. Vytvoř personalizovanou nabídku podle SPIN + Challenger Sale + Value Proposition frameworku
+
+STRUKTURA NABÍDKY (přesně toto pořadí):
+
+## 🎯 Situace — Kde [firma] stojí dnes
+[2-3 věty o aktuální situaci firmy — co dělají, kde jsou na trhu, co je vidět z veřejných zdrojů]
+
+## 😓 Výzvy — Co vás pravděpodobně bolí
+[3-4 konkrétní pain points typické pro tuto firmu a odvětví. Buď konkrétní — ne generický.]
+
+## ⚠️ Implikace — Co se stane, pokud to nevyřešíte
+[2-3 věty — co ztratí nebo riskují pokud problém nevyřeší. Urgence bez strašení.]
+
+## 🌍 Jak to řeší ostatní — a proč to nestačí
+[Jak typicky firmy v tomto odvětví řeší tyto výzvy a kde naráží na limity současných řešení]
+
+## 💡 Naše řešení — Přesně pro vás
+[Konkrétní popis jak náš produkt/služba "${lead.produkt || 'naše řešení'}" řeší JEJICH specifické výzvy. Propoj s jejich situací.]
+
+## 📈 Co tím získáte — Konkrétní výsledky
+[3 konkrétní výsledky/benefity které mohou očekávat. Pokud možno s čísly nebo časovým horizontem.]
+
+## 💰 Investice
+[Přibližná cena nebo cenové rozmezí pro ${lead.produkt || 'navrhované řešení'} — pokud víš, jinak napiš "Individuální cenová nabídka — domluvíme na schůzce"]
+
+## 🚀 Navrhovaný další krok
+[Konkrétní výzva k akci — co by měl udělat teď. Max 2 věty. Přímé a sebevědomé.]
+
+---
+Piš česky. Buď konkrétní a personální — vyhni se generickým frázím. Nabídka musí vypadat jako že víš přesně o co jde v jejich firmě.`
+
+      const res = await fetch('/api/claude', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-opus-4-5',
+          max_tokens: 2000,
+          messages: [{ role: 'user', content: prompt }]
+        })
+      })
+      const data = await res.json()
+      const text = data.content?.[0]?.text || ''
+      if (text) {
+        setNabidka(text)
+        // Auto-save to Supabase
+        await supabase.from('leads').update({
+          nabidka: text,
+          nabidka_updated_at: new Date().toISOString()
+        }).eq('id', lead.id)
+        setNabidkaSaved(true)
+        setTimeout(() => setNabidkaSaved(false), 3000)
+      }
+    } catch(e) {
+      console.error('Nabídka error:', e)
+      alert('Chyba při generování nabídky. Zkontroluj ANTHROPIC_API_KEY v Vercel.')
+    }
+    setNabidkaLoading(false)
+  }
+
+  const saveNabidka = async () => {
+    await supabase.from('leads').update({
+      nabidka,
+      nabidka_updated_at: new Date().toISOString()
+    }).eq('id', lead.id)
+    setNabidkaSaved(true)
+    setTimeout(() => setNabidkaSaved(false), 2000)
+  }
+
+  const sendNabidkaEmail = () => {
+    if (!lead.email) return alert('Lead nemá zadaný email.')
+    const subject = encodeURIComponent(`Nabídka spolupráce — ${lead.firma}`)
+    const body = encodeURIComponent(nabidka.replace(/#{1,3} /g, '').replace(/\*\*/g, ''))
+    window.open(`mailto:${lead.email}?subject=${subject}&body=${body}`)
+  }
   const [comments, setComments] = useState([])
   const [newText, setNewText] = useState('')
   const [autor, setAutor] = useState('Karel')
@@ -563,6 +659,13 @@ const LeadDetail = ({ lead, onEdit, onClose }) => {
               color: activeTab==='dokumenty' ? '#534AB7' : '#888',
               fontWeight: activeTab==='dokumenty' ? 500 : 400
             }}>Dokumenty · {docs.length}</button>
+            <button onClick={() => setActiveTab('nabidka')} style={{
+              padding:'6px 14px',borderRadius:8,fontSize:13,cursor:'pointer',fontFamily:'inherit',
+              border:'0.5px solid ' + (activeTab==='nabidka' ? '#854F0B' : '#e0e0e0'),
+              background: activeTab==='nabidka' ? '#FAEEDA' : '#fff',
+              color: activeTab==='nabidka' ? '#854F0B' : '#888',
+              fontWeight: activeTab==='nabidka' ? 500 : 400
+            }}>💡 Nabídka AI</button>
           </div>
 
           {activeTab === 'aktivita' && (
@@ -714,6 +817,73 @@ const LeadDetail = ({ lead, onEdit, onClose }) => {
             </div>
           </div>
         )}
+
+          {activeTab === 'nabidka' && (
+            <div style={{padding:'12px 0 20px'}}>
+              <div style={{display:'flex',gap:8,marginBottom:14,flexWrap:'wrap',alignItems:'center'}}>
+                <button
+                  onClick={generateNabidka}
+                  disabled={nabidkaLoading}
+                  style={{
+                    padding:'8px 18px',borderRadius:8,border:'none',
+                    background: nabidkaLoading ? '#e0e0e0' : '#854F0B',
+                    color: nabidkaLoading ? '#888' : '#fff',
+                    fontSize:13,cursor:nabidkaLoading?'not-allowed':'pointer',fontFamily:'inherit',fontWeight:500,
+                    display:'flex',alignItems:'center',gap:6
+                  }}>
+                  {nabidkaLoading ? '⏳ Generuji nabídku...' : '✨ Generovat AI nabídku'}
+                </button>
+                {nabidka && (
+                  <>
+                    <button onClick={saveNabidka} style={{
+                      padding:'8px 14px',borderRadius:8,border:'0.5px solid #0F6E56',
+                      background:'#E1F5EE',color:'#0F6E56',fontSize:13,cursor:'pointer',fontFamily:'inherit'
+                    }}>💾 Uložit</button>
+                    <button onClick={sendNabidkaEmail} style={{
+                      padding:'8px 14px',borderRadius:8,border:'0.5px solid #534AB7',
+                      background:'#EEEDFE',color:'#534AB7',fontSize:13,cursor:'pointer',fontFamily:'inherit'
+                    }}>✉️ Odeslat emailem</button>
+                  </>
+                )}
+                {nabidkaSaved && <span style={{fontSize:12,color:'#0F6E56'}}>✓ Uloženo</span>}
+              </div>
+
+              {nabidkaLoading && (
+                <div style={{padding:'32px 0',textAlign:'center'}}>
+                  <div style={{fontSize:13,color:'#854F0B',marginBottom:8}}>Claude prohledává dostupné informace o klientovi...</div>
+                  <div style={{fontSize:12,color:'#bbb'}}>Trvá to 15–30 sekund</div>
+                </div>
+              )}
+
+              {!nabidkaLoading && !nabidka && (
+                <div style={{padding:'32px 0',textAlign:'center',color:'#bbb',fontSize:13}}>
+                  <div style={{fontSize:32,marginBottom:8}}>💡</div>
+                  <div>Klikni na „Generovat AI nabídku" a Claude vytvoří</div>
+                  <div>personalizovanou nabídku na základě informací o klientovi z internetu.</div>
+                  <div style={{marginTop:8,fontSize:12,color:'#ddd'}}>Používá SPIN + Challenger Sale framework</div>
+                </div>
+              )}
+
+              {!nabidkaLoading && nabidka && (
+                <div>
+                  <textarea
+                    value={nabidka}
+                    onChange={e => setNabidka(e.target.value)}
+                    style={{
+                      width:'100%',padding:'14px 16px',borderRadius:10,
+                      border:'0.5px solid #e0e0e0',fontSize:13,fontFamily:'inherit',
+                      resize:'vertical',minHeight:400,lineHeight:1.7,
+                      background:'#fafaf8',color:'#333'
+                    }}
+                  />
+                  <div style={{fontSize:11,color:'#bbb',marginTop:6}}>
+                    Nabídku můžeš přímo editovat, pak uložit nebo odeslat emailem.
+                    {lead.nabidka_updated_at && ' Naposledy aktualizováno: ' + new Date(lead.nabidka_updated_at).toLocaleDateString('cs')}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
       </div>
 
       {showUkolModal && (

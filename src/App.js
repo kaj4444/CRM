@@ -4123,16 +4123,16 @@ export default function App() {
 
   const NAV = [
     { id:'dashboard', icon:'📊', label:'Dashboard' },
-    { id:'kanban', icon:'⬛', label: userProfile?.industry === 'real-estate' ? 'Pipeline' : 'Kanban' },
+    { id:'kanban', icon:'⬛', label: (userProfile?.industry || 'general') === 'real-estate' ? 'Pipeline' : 'Kanban' },
     { id:'table', icon:'☰', label:'Tabulka' },
-    { id:'followup', icon:'📅', label: userProfile?.industry === 'real-estate' ? 'Dnešní akce' : 'Follow-up dnes' },
+    { id:'followup', icon:'📅', label: (userProfile?.industry || 'general') === 'real-estate' ? 'Dnešní akce' : 'Follow-up dnes' },
     { id:'ukoly', icon:'✅', label:'Úkoly' },
-    { id:'multiplikatori', icon:'🤝', label: userProfile?.industry === 'real-estate' ? 'Partneři / referrali' : 'Multiplikátoři' },
-    { id:'discovery', icon:'📞', label: userProfile?.industry === 'real-estate' ? 'Script schůzky' : 'Discovery script' },
+    { id:'multiplikatori', icon:'🤝', label: (userProfile?.industry || 'general') === 'real-estate' ? 'Partneři / referrali' : 'Multiplikátoři' },
+    { id:'discovery', icon:'📞', label: (userProfile?.industry || 'general') === 'real-estate' ? 'Script schůzky' : 'Discovery script' },
     { id:'email', icon:'✉️', label:'Email šablony' },
     { id:'dokumenty', icon:'📄', label:'Dokumenty' },
     { id:'strategie', icon:'🎯', label:'Strategický plán' },
-    { id:'produkty', icon:'📦', label: userProfile?.industry === 'real-estate' ? 'Nabídky / produkty' : 'Produkty' },
+    { id:'produkty', icon:'📦', label: (userProfile?.industry || 'general') === 'real-estate' ? 'Nabídky / produkty' : 'Produkty' },
     { id:'pruvodce', icon:'🗺️', label:'Průvodce strategií' },
   ]
 
@@ -4428,7 +4428,7 @@ export default function App() {
                 <option value="">Všichni</option>
                 {['Karel','Radim','Aleš'].map(o=><option key={o}>{o}</option>)}
               </select>
-              <button className="btn accent" onClick={() => setModal('new')}>{userProfile?.industry === 'real-estate' ? '+ Nový klient' : '+ Nový lead'}</button>
+              <button className="btn accent" onClick={() => setModal('new')}>{(userProfile?.industry || 'general') === 'real-estate' ? '+ Nový klient' : '+ Nový lead'}</button>
         <button className="btn" onClick={() => {
           const cols = ['Firma','Osoba','Role','Segment','Email','Produkt','Stav','Cena','Vede','Follow-up']
           const rows = filtered.map(l => [l.firma,l.osoba,l.role,l.segment,l.email,l.produkt,l.stav,l.cena,l.vede,l.followup])
@@ -4447,18 +4447,18 @@ export default function App() {
         )}
 
         {loading && <div className="loading">Načítám data...</div>}
-        {!loading && tab==='kanban' && <KanbanView leads={filtered} onOpen={setDetail} onStavChange={changeStav} industry={userProfile?.industry} />}
+        {!loading && tab==='kanban' && <KanbanView leads={filtered} onOpen={setDetail} onStavChange={changeStav} industry={userProfile?.industry || 'general'} />}
         {!loading && tab==='table' && <TableView leads={filtered} onOpen={setDetail} />}
         {!loading && tab==='followup' && <FollowupView leads={filtered} onOpen={setDetail} />}
         {!loading && tab==='multiplikatori' && <MultiplikatoriView leads={filtered} onOpen={setDetail} />}
-        {tab==='discovery' && <DiscoveryScript industry={userProfile?.industry} />}
-        {tab==='email' && <EmailTemplates industry={userProfile?.industry} />}
+        {tab==='discovery' && <DiscoveryScript industry={userProfile?.industry || 'general'} />}
+        {tab==='email' && <EmailTemplates industry={userProfile?.industry || 'general'} />}
         {tab==='dokumenty' && <PdfDocuments />}
-        {tab==='dashboard' && <Dashboard leads={leads} onOpen={setDetail} industry={userProfile?.industry} />}
+        {tab==='dashboard' && <Dashboard leads={leads} onOpen={setDetail} industry={userProfile?.industry || 'general'} />}
         {tab==='ukoly' && <UkolyView leads={leads} onLeadChange={onLeadChange} />}
         {tab==='strategie' && <StrategickyPlan />}
         {tab==='pruvodce' && <PruvodceStrategii />}
-        {tab==='produkty' && <ProduktyPrehled industry={userProfile?.industry} />}
+        {tab==='produkty' && <ProduktyPrehled industry={userProfile?.industry || 'general'} />}
       </div>
 
       {detail && (
@@ -4475,7 +4475,7 @@ export default function App() {
           onSave={async (form) => { await saveLead(form); if(detail) setDetail({...detail,...form}) }}
           onDelete={deleteLead}
           onClose={() => setModal(null)}
-          industry={userProfile?.industry}
+          industry={userProfile?.industry || 'general'}
         />
       )}
     </div>

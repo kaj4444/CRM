@@ -933,7 +933,7 @@ const LeadModal = ({ lead, onSave, onDelete, onClose, industry }) => {
               <select {...fi('odvetvi')}>{cfg.odvetvi.map(o=><option key={o}>{o}</option>)}</select>
             </div>
             <div className="form-row"><label>Zdroj leadu</label>
-              <select {...fi('zdroj')}>{['Vlastní síť','Referral','LinkedIn','Agentura','Warm lead Talkey','Event'].map(o=><option key={o}>{o}</option>)}</select>
+              <select {...fi('zdroj')}>{(industry === 'cybersecurity' ? ['Vlastní síť','Referral','LinkedIn','Agentura','Warm lead Talkey','Event'] : ['Vlastní síť','Referral','LinkedIn','Agentura','Warm lead','Event','Doporučení']).map(o=><option key={o}>{o}</option>)}</select>
             </div>
           </div>
           <div className="form-grid">

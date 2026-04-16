@@ -83,6 +83,17 @@ const STAV_STYLES = {
   'Uzavřeno — vyhráno': { bg:'#EAF3DE', color:'#27500A' },
   'Uzavřeno — prohráno': { bg:'#FCEBEB', color:'#791F1F' },
   'Odloženo': { bg:'#F1EFE8', color:'#5F5E5A' },
+  // Real-estate stages
+  'Poptávka': { bg:'#E6F1FB', color:'#185FA5' },
+  'Prohlídka domluvena': { bg:'#FAEEDA', color:'#854F0B' },
+  'Prohlídka proběhla': { bg:'#E1F5EE', color:'#0F6E56' },
+  'Rezervace podepsána': { bg:'#EAF3DE', color:'#3B6D11' },
+  'Podpis smlouvy': { bg:'#FAEEDA', color:'#633806' },
+  'Uzavřeno — prodáno': { bg:'#EAF3DE', color:'#27500A' },
+  'Uzavřeno — staženo': { bg:'#FCEBEB', color:'#791F1F' },
+  // General stages
+  'Schůzka domluvena': { bg:'#E1F5EE', color:'#0F6E56' },
+  'Schůzka proběhla': { bg:'#EAF3DE', color:'#3B6D11' },
 }
 
 const KANBAN_STAVS = STAVS.slice(0, 7)
@@ -96,6 +107,90 @@ const EMPTY_LEAD = {
 
 const STITKY_OPTIONS = ['VIP','Urgentní','Čeká na smlouvu','Warm','Cold','Referral','Enterprise','Priorita']
 const STITKY_COLORS = {'VIP':'#534AB7','Urgentní':'#A32D2D','Čeká na smlouvu':'#854F0B','Warm':'#0F6E56','Cold':'#185FA5','Referral':'#27500A','Enterprise':'#633806','Priorita':'#791F1F'}
+
+
+// ─── INDUSTRY CONFIG ──────────────────────────────────────────────────────────
+const INDUSTRY_CONFIG = {
+  cybersecurity: {
+    label: 'Kyberbezpečnost',
+    stavs: ['Lead','Kontaktováno','Discovery call domluven','Discovery call proběhl',
+      'Nabídka odeslána','Vyjednávání','Uzavřeno — vyhráno','Uzavřeno — prohráno','Odloženo'],
+    kanbanStavs: ['Lead','Kontaktováno','Discovery call domluven','Discovery call proběhl',
+      'Nabídka odeslána','Vyjednávání','Uzavřeno — vyhráno'],
+    emptyLead: {
+      firma:'', osoba:'', role:'CEO', segment:'Přímý klient',
+      email:'', telefon:'', odvetvi:'Energetika', zdroj:'Vlastní síť',
+      produkt:'Review NIS2', stav:'Lead', cena:'', prob:'Nízká (0–30 %)',
+      vede:'Karel', followup:'', d1:'', namitka:'', poznamky:'', stitky:''
+    },
+    firmLabel: 'Název firmy',
+    klientLabel: 'Kontaktní osoba',
+    produkty: ['Review NIS2','Check DORA','Program NIS2','Program DORA','Lorenc NIS2','Lorenc DORA','Kyber.testy'],
+    segmenty: ['Přímý klient','Multiplikátor','Finanční sektor (DORA)','Veřejná správa'],
+    odvetvi: ['Energetika','Zdravotnictví','Doprava','IT/Tech','Výroba','Finance','Logistika','Jiné'],
+    role: ['CEO','CFO','IT ředitel','Jiná'],
+    namitky: ['','Cena','Timing','Interní řešení','Potřebuje schválení','Není zájem','Jiné'],
+    extraFields: null,
+  },
+  'real-estate': {
+    label: 'Reality',
+    stavs: ['Poptávka','Prohlídka domluvena','Prohlídka proběhla','Nabídka odeslána',
+      'Rezervace podepsána','Podpis smlouvy','Uzavřeno — prodáno','Uzavřeno — staženo','Odloženo'],
+    kanbanStavs: ['Poptávka','Prohlídka domluvena','Prohlídka proběhla','Nabídka odeslána',
+      'Rezervace podepsána','Podpis smlouvy','Uzavřeno — prodáno'],
+    emptyLead: {
+      firma:'', osoba:'', role:'Kupující', segment:'Přímý klient',
+      email:'', telefon:'', odvetvi:'Byt', zdroj:'Vlastní síť',
+      produkt:'Prodej nemovitosti', stav:'Poptávka', cena:'', prob:'Nízká (0–30 %)',
+      vede:'Karel', followup:'', d1:'', namitka:'', poznamky:'', stitky:'',
+      lokalita:'', dispozice:'', plocha:''
+    },
+    firmLabel: 'Název nemovitosti / adresa',
+    klientLabel: 'Klient (jméno)',
+    produkty: ['Prodej nemovitosti','Pronájem','Koupě — zastupuji kupujícího','Ocenění','Správa nemovitosti','Investiční poradenství'],
+    segmenty: ['Přímý klient','Referral','Developer','Investor','Firma'],
+    odvetvi: ['Byt','Rodinný dům','Komerční prostor','Pozemek','Novostavba','Rekonstrukce','Jiné'],
+    role: ['Kupující','Prodávající','Investor','Nájemník','Developer'],
+    namitky: ['','Cena','Lokalita','Stav nemovitosti','Financování','Timing','Konkurenční nabídka','Jiné'],
+    extraFields: ['lokalita','dispozice','plocha'],
+  },
+  general: {
+    label: 'Jiné',
+    stavs: ['Lead','Kontaktováno','Schůzka domluvena','Schůzka proběhla',
+      'Nabídka odeslána','Vyjednávání','Uzavřeno — vyhráno','Uzavřeno — prohráno','Odloženo'],
+    kanbanStavs: ['Lead','Kontaktováno','Schůzka domluvena','Schůzka proběhla',
+      'Nabídka odeslána','Vyjednávání','Uzavřeno — vyhráno'],
+    emptyLead: {
+      firma:'', osoba:'', role:'CEO', segment:'Přímý klient',
+      email:'', telefon:'', odvetvi:'Jiné', zdroj:'Vlastní síť',
+      produkt:'Služba', stav:'Lead', cena:'', prob:'Nízká (0–30 %)',
+      vede:'Karel', followup:'', d1:'', namitka:'', poznamky:'', stitky:''
+    },
+    firmLabel: 'Název firmy / klienta',
+    klientLabel: 'Kontaktní osoba',
+    produkty: ['Služba','Produkt','Konzultace','Jiné'],
+    segmenty: ['Přímý klient','Referral','Partner','Enterprise'],
+    odvetvi: ['IT','Finance','Výroba','Obchod','Zdravotnictví','Jiné'],
+    role: ['CEO','CFO','Manažer','Jiná'],
+    namitky: ['','Cena','Timing','Potřebuje schválení','Není zájem','Jiné'],
+    extraFields: null,
+  }
+}
+
+const getIndustryCfg = (industry) => INDUSTRY_CONFIG[industry] || INDUSTRY_CONFIG['general']
+
+// Real-estate stav styles
+const STAV_STYLES_RE = {
+  'Poptávka': { bg:'#E6F1FB', color:'#185FA5' },
+  'Prohlídka domluvena': { bg:'#FAEEDA', color:'#854F0B' },
+  'Prohlídka proběhla': { bg:'#E1F5EE', color:'#0F6E56' },
+  'Nabídka odeslána': { bg:'#EEEDFE', color:'#534AB7' },
+  'Rezervace podepsána': { bg:'#EAF3DE', color:'#3B6D11' },
+  'Podpis smlouvy': { bg:'#FAEEDA', color:'#633806' },
+  'Uzavřeno — prodáno': { bg:'#EAF3DE', color:'#27500A' },
+  'Uzavřeno — staženo': { bg:'#FCEBEB', color:'#791F1F' },
+  'Odloženo': { bg:'#F1EFE8', color:'#5F5E5A' },
+}
 
 const today = () => new Date().toISOString().slice(0,10)
 
@@ -625,8 +720,9 @@ const LeadDetail = ({ lead, onEdit, onClose }) => {
 }
 
 // ─── MODAL FORMULÁŘ ───────────────────────────────────────────────────────────
-const LeadModal = ({ lead, onSave, onDelete, onClose }) => {
-  const [form, setForm] = useState(lead || EMPTY_LEAD)
+const LeadModal = ({ lead, onSave, onDelete, onClose, industry }) => {
+  const cfg = getIndustryCfg(industry)
+  const [form, setForm] = useState(lead || cfg.emptyLead)
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
   const fi = (k) => ({ value: form[k] || '', onChange: e => set(k, e.target.value) })
 
@@ -634,20 +730,20 @@ const LeadModal = ({ lead, onSave, onDelete, onClose }) => {
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal">
         <div className="modal-head">
-          <h2>{lead ? 'Upravit lead' : 'Nový lead'}</h2>
+          <h2>{lead ? (industry === 'real-estate' ? 'Upravit klienta' : 'Upravit lead') : (industry === 'real-estate' ? 'Nový klient / nemovitost' : 'Nový lead')}</h2>
           <button className="close-btn" onClick={onClose}>×</button>
         </div>
         <div className="modal-body">
           <div className="form-grid">
-            <div className="form-row"><label>Název firmy *</label><input {...fi('firma')} placeholder="Acme s.r.o." /></div>
-            <div className="form-row"><label>Kontaktní osoba</label><input {...fi('osoba')} placeholder="Jan Novák" /></div>
+            <div className="form-row"><label>{cfg.firmLabel} *</label><input {...fi('firma')} placeholder={cfg.firmLabel} /></div>
+            <div className="form-row"><label>{cfg.klientLabel}</label><input {...fi('osoba')} placeholder="Jan Novák" /></div>
           </div>
           <div className="form-grid">
             <div className="form-row"><label>Role</label>
-              <select {...fi('role')}>{['CEO','CFO','IT ředitel','Jiná'].map(o=><option key={o}>{o}</option>)}</select>
+              <select {...fi('role')}>{cfg.role.map(o=><option key={o}>{o}</option>)}</select>
             </div>
             <div className="form-row"><label>Segment</label>
-              <select {...fi('segment')}>{['Přímý klient','Multiplikátor','Finanční sektor (DORA)','Veřejná správa'].map(o=><option key={o}>{o}</option>)}</select>
+              <select {...fi('segment')}>{cfg.segmenty.map(o=><option key={o}>{o}</option>)}</select>
             </div>
           </div>
           <div className="form-grid">
@@ -656,7 +752,7 @@ const LeadModal = ({ lead, onSave, onDelete, onClose }) => {
           </div>
           <div className="form-grid">
             <div className="form-row"><label>Odvětví</label>
-              <select {...fi('odvetvi')}>{['Energetika','Zdravotnictví','Doprava','IT/Tech','Výroba','Finance','Logistika','Jiné'].map(o=><option key={o}>{o}</option>)}</select>
+              <select {...fi('odvetvi')}>{cfg.odvetvi.map(o=><option key={o}>{o}</option>)}</select>
             </div>
             <div className="form-row"><label>Zdroj leadu</label>
               <select {...fi('zdroj')}>{['Vlastní síť','Referral','LinkedIn','Agentura','Warm lead Talkey','Event'].map(o=><option key={o}>{o}</option>)}</select>
@@ -664,10 +760,10 @@ const LeadModal = ({ lead, onSave, onDelete, onClose }) => {
           </div>
           <div className="form-grid">
             <div className="form-row"><label>Produkt zájem</label>
-              <select {...fi('produkt')}>{['Review NIS2','Check DORA','Program NIS2','Program DORA','Lorenc','Kyber.testy','Neznámý'].map(o=><option key={o}>{o}</option>)}</select>
+              <select {...fi('produkt')}>{cfg.produkty.map(o=><option key={o}>{o}</option>)}</select>
             </div>
             <div className="form-row"><label>Stav</label>
-              <select {...fi('stav')}>{STAVS.map(o=><option key={o}>{o}</option>)}</select>
+              <select {...fi('stav')}>{cfg.stavs.map(o=><option key={o}>{o}</option>)}</select>
             </div>
           </div>
           <div className="form-grid">
@@ -685,12 +781,32 @@ const LeadModal = ({ lead, onSave, onDelete, onClose }) => {
           <div className="form-grid">
             <div className="form-row"><label>Datum 1. kontaktu</label><input type="date" {...fi('d1')} /></div>
             <div className="form-row"><label>Hlavní námitka</label>
-              <select {...fi('namitka')}>{['','Cena','Timing','Interní řešení','Potřebuje schválení','Není zájem','Jiné'].map(o=><option key={o} value={o}>{o||'—'}</option>)}</select>
+              <select {...fi('namitka')}>{cfg.namitky.map(o=><option key={o} value={o}>{o||'—'}</option>)}</select>
             </div>
           </div>
-          <div className="form-row"><label>Poznámky z callu</label>
-            <textarea {...fi('poznamky')} placeholder="Co říkali, co bolí, co rozhoduje..." />
+          <div className="form-row"><label>{industry === 'real-estate' ? 'Poznámky' : 'Poznámky z callu'}</label>
+            <textarea {...fi('poznamky')} placeholder={industry === 'real-estate' ? 'Stav nemovitosti, motivace klienta, požadavky...' : 'Co říkali, co bolí, co rozhoduje...'} />
           </div>
+          {industry === 'real-estate' && (
+            <div className="form-grid">
+              <div className="form-row"><label>Lokalita / adresa</label><input {...fi('lokalita')} placeholder="Praha 6 — Dejvice" /></div>
+              <div className="form-row"><label>Dispozice</label>
+                <select {...fi('dispozice')}>
+                  {['','1+kk','1+1','2+kk','2+1','3+kk','3+1','4+kk','4+1','5+kk','5+1','6+','Komerční','Pozemek'].map(o=><option key={o} value={o}>{o||'—'}</option>)}
+                </select>
+              </div>
+            </div>
+          )}
+          {industry === 'real-estate' && (
+            <div className="form-grid">
+              <div className="form-row"><label>Plocha (m²)</label><input type="number" {...fi('plocha')} placeholder="75" /></div>
+              <div className="form-row"><label>Stav nemovitosti</label>
+                <select {...fi('stav_nemovitosti')}>
+                  {['','Novostavba','Po rekonstrukci','Dobrý stav','K rekonstrukci','Projekt'].map(o=><option key={o} value={o}>{o||'—'}</option>)}
+                </select>
+              </div>
+            </div>
+          )}
           <div className="form-row"><label>Štítky</label>
             <div style={{display:'flex',gap:6,flexWrap:'wrap',marginTop:4}}>
               {STITKY_OPTIONS.map(s => {
@@ -723,7 +839,10 @@ const LeadModal = ({ lead, onSave, onDelete, onClose }) => {
 }
 
 // ─── KANBAN ────────────────────────────────────────────────────────────────────
-const KanbanView = ({ leads, onOpen, onStavChange }) => {
+const KanbanView = ({ leads, onOpen, onStavChange, industry }) => {
+  const cfg = getIndustryCfg(industry)
+  const kanbanStavs = cfg.kanbanStavs
+  const stavStyles = industry === 'real-estate' ? STAV_STYLES_RE : STAV_STYLES
   const t = today()
   const [dragging, setDragging] = useState(null)
   const [dragOver, setDragOver] = useState(null)
@@ -755,7 +874,7 @@ const KanbanView = ({ leads, onOpen, onStavChange }) => {
 
   return (
     <div className="kanban">
-      {KANBAN_STAVS.map(stav => {
+      {kanbanStavs.map(stav => {
         const cards = leads.filter(l => l.stav === stav)
         const isOver = dragOver === stav
         return (
@@ -959,11 +1078,13 @@ const phases = [
   },
 ]
 
-const DiscoveryScript = () => {
+const DiscoveryScript = ({ industry }) => {
+  const activePhasesData = industry === 'real-estate' ? phasesRE : phases
+  const discoveryTitle = industry === 'real-estate' ? 'Script prodejní schůzky' : 'Discovery Call Script'
   const [current, setCurrent] = useState(0)
   const [checked, setChecked] = useState({})
   const [openNamitka, setOpenNamitka] = useState(null)
-  const [timerSec, setTimerSec] = useState(1800)
+  const [timerSec, setTimerSec] = useState(industry === 'real-estate' ? 2700 : 1800)
   const [running, setRunning] = useState(false)
 
   useEffect(() => {
@@ -972,7 +1093,7 @@ const DiscoveryScript = () => {
     return () => clearInterval(i)
   }, [running])
 
-  const p = phases[current]
+  const p = activePhasesData[current]
   const toggleCheck = (key) => setChecked(c => ({ ...c, [key]: !c[key] }))
   const totalQ = phases.reduce((s,ph) => s + (ph.questions?.length || 0), 0)
   const totalDone = Object.values(checked).filter(Boolean).length
@@ -995,7 +1116,7 @@ const DiscoveryScript = () => {
       </div>
 
       <div style={{display:'flex',gap:4,marginBottom:16,flexWrap:'wrap'}}>
-        {phases.map((ph,i) => (
+        {activePhasesData.map((ph,i) => (
           <span key={ph.id} onClick={() => setCurrent(i)} style={{
             padding:'4px 12px',borderRadius:10,fontSize:12,cursor:'pointer',
             background: i===current ? '#EEEDFE' : i<current ? '#E1F5EE' : '#f5f5f3',
@@ -1005,7 +1126,7 @@ const DiscoveryScript = () => {
         ))}
       </div>
 
-      <div style={{fontSize:11,color:'#aaa',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>Fáze {current+1} / {phases.length}</div>
+      <div style={{fontSize:11,color:'#aaa',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>Fáze {current+1} / {activePhasesData.length}</div>
       <div style={{fontSize:18,fontWeight:500,marginBottom:4}}>{p.title}</div>
       <div style={{fontSize:13,color:'#888',marginBottom:16}}>{p.meta}</div>
 
@@ -1055,8 +1176,8 @@ const DiscoveryScript = () => {
 
       <div style={{display:'flex',justifyContent:'space-between',marginTop:16}}>
         <button className="btn" onClick={() => setCurrent(c=>Math.max(0,c-1))} disabled={current===0}>← Zpět</button>
-        <button className="btn accent" onClick={() => setCurrent(c=>Math.min(phases.length-1,c+1))} disabled={current===phases.length-1}>
-          {current===phases.length-1?'Hotovo ✓':'Další →'}
+        <button className="btn accent" onClick={() => setCurrent(c=>Math.min(activePhasesData.length-1,c+1))} disabled={current===activePhasesData.length-1}>
+          {current===activePhasesData.length-1?'Hotovo ✓':'Další →'}
         </button>
       </div>
     </div>
@@ -1568,12 +1689,277 @@ Key Account Manager | Talkey a.s. | riscare`,
   },
 }
 
-const EmailTemplates = () => {
-  const [produkt, setProdukt] = useState('Review NIS2')
-  const [faze, setFaze] = useState('První kontakt')
+
+// ─── REAL ESTATE EMAIL TEMPLATES ──────────────────────────────────────────────
+const emailTemplatesRE = {
+  'Prodej nemovitosti': {
+    'První kontakt': {
+      subject: 'Vaše nemovitost — bezplatná konzultace prodeje',
+      body: `Dobrý den [Jméno],
+
+dostala se ke mně informace, že uvažujete o prodeji nemovitosti v [lokalita].
+
+Rád bych vám nabídl bezplatnou konzultaci, kde:
+• Stanovíme reálnou tržní cenu vaší nemovitosti
+• Ukáži vám podobné prodeje v okolí za posledních 6 měsíců
+• Navrhnu strategii prodeje šitou na míru
+
+Celé setkání zabere 30–45 minut, bez závazku.
+
+Hodí se vám příští týden?
+
+S pozdravem
+[Vaše jméno] | realitní makléř`
+    },
+    'Po prohlídce': {
+      subject: 'Shrnutí dnešní prohlídky — [adresa]',
+      body: `Dobrý den [Jméno],
+
+děkuji za dnešní setkání. Rád shrnuji:
+
+🏠 Nemovitost: [adresa]
+📐 Dispozice: [dispozice], [plocha] m²
+💰 Doporučená prodejní cena: [cena] Kč
+
+Co jsem si z prohlídky odnesl:
+• [Pozitiva nemovitosti]
+• [Body pro marketing]
+
+Navrhovaný postup:
+1. Podpis zprostředkovatelské smlouvy
+2. Profesionální fotodokumentace
+3. Inzerce na hlavních portálech (Sreality, Bezrealitky, Reality.cz)
+4. Aktivní oslovení mé databáze poptávajících
+
+Mám zájem? Kdy se hodí podepsat smlouvu?
+
+S pozdravem
+[Vaše jméno]`
+    },
+    'Follow-up': {
+      subject: 'Připomínka — nemovitost [adresa]',
+      body: `Dobrý den [Jméno],
+
+píšu, protože jsme se naposledy bavili o prodeji vaší nemovitosti na adrese [adresa].
+
+Trh se momentálně [pohybuje příznivě / stabilizoval] a zájem kupujících v této lokalitě je vysoký.
+
+Rád bych se znovu spojil — máte ještě zájem o nezávaznou konzultaci?
+
+S pozdravem
+[Vaše jméno]`
+    },
+    'Uzavření': {
+      subject: 'Smlouva o zprostředkování — [adresa]',
+      body: `Dobrý den [Jméno],
+
+v příloze zasílám návrh zprostředkovatelské smlouvy pro nemovitost na adrese [adresa].
+
+Klíčové podmínky:
+• Exkluzivita: [X měsíců]
+• Provize: [X %] z prodejní ceny
+• Cílová cena: [cena] Kč
+
+Smlouvu si prosím prostudujte. Jsem k dispozici pro jakékoli dotazy.
+
+Jakmile potvrdíte, naplánujeme profesionální fotografie a spustíme kampaň.
+
+S pozdravem
+[Vaše jméno]`
+    }
+  },
+  'Koupě — zastupuji kupujícího': {
+    'První kontakt': {
+      subject: 'Vaše poptávka nemovitosti — jsem tu pro vás',
+      body: `Dobrý den [Jméno],
+
+děkuji za váš zájem. Rád vám pomohu najít ideální nemovitost v [lokalita].
+
+Na základě vašich požadavků:
+• Typ: [typ nemovitosti]
+• Lokalita: [oblast]
+• Budget: do [cena] Kč
+• Dispozice: [dispozice]
+
+Mám v databázi několik nemovitostí, které by mohly odpovídat — rád vám je ukáži osobně nebo virtuálně.
+
+Kdy se vám hodí prohlídka?
+
+S pozdravem
+[Vaše jméno]`
+    },
+    'Po prohlídce': {
+      subject: 'Shrnutí prohlídky — [adresa]',
+      body: `Dobrý den [Jméno],
+
+děkuji za dnešní prohlídku nemovitosti na adrese [adresa].
+
+Moje hodnocení pro vás:
+✅ Plusy: [výhody]
+⚠️ Ke zvážení: [možné nevýhody]
+💰 Tržní cena: [cena] Kč (doporučuji nabídnout [nabídka] Kč)
+
+Máte zájem podat nabídku? Pomůžu vám vyjednat co nejlepší podmínky.
+
+S pozdravem
+[Vaše jméno]`
+    },
+    'Follow-up': {
+      subject: 'Nové nemovitosti odpovídající vašim požadavkům',
+      body: `Dobrý den [Jméno],
+
+přidaly se nové nemovitosti v lokalitě [oblast], které odpovídají vašim kritériím.
+
+Vybrané tipy:
+1. [Adresa 1] — [dispozice], [plocha] m², [cena] Kč
+2. [Adresa 2] — [dispozice], [plocha] m², [cena] Kč
+
+Mám zájem domluvit prohlídky?
+
+S pozdravem
+[Vaše jméno]`
+    },
+    'Uzavření': {
+      subject: 'Rezervační smlouva — [adresa]',
+      body: `Dobrý den [Jméno],
+
+gratulujeme k výběru nemovitosti! V příloze zasílám návrh rezervační smlouvy.
+
+Nemovitost: [adresa]
+Domluvená cena: [cena] Kč
+Rezervační záloha: [záloha] Kč
+Termín podpisu kupní smlouvy: [datum]
+
+Doporučuji zajistit financování nejpozději do [datum]. V případě hypotéky vám mohu doporučit ověřeného hypotečního poradce.
+
+S pozdravem
+[Vaše jméno]`
+    }
+  },
+  'Pronájem': {
+    'První kontakt': {
+      subject: 'Vaše poptávka pronájmu — [lokalita]',
+      body: `Dobrý den [Jméno],
+
+děkuji za kontakt ohledně pronájmu v [lokalita].
+
+Mám k dispozici několik bytů/prostor, které by mohly odpovídat vašim požadavkům:
+• Dispozice: [dispozice]
+• Max. nájem: [cena] Kč/měsíc
+• Dostupnost od: [datum]
+
+Rád domluvím prohlídku — kdy se vám hodí?
+
+S pozdravem
+[Vaše jméno]`
+    },
+    'Po prohlídce': {
+      subject: 'Shrnutí prohlídky bytu — [adresa]',
+      body: `Dobrý den [Jméno],
+
+děkuji za prohlídku. Shrnutí:
+
+📍 Adresa: [adresa]
+📐 [dispozice], [plocha] m²
+💰 Nájemné: [cena] Kč/měsíc + zálohy [zálohy] Kč
+📅 Dostupné od: [datum]
+
+Máte zájem? Pro rezervaci potřebuji:
+1. Váš souhlas
+2. Doklady totožnosti
+3. Potvrzení o příjmu
+
+Dejte vědět!
+
+S pozdravem
+[Vaše jméno]`
+    },
+    'Follow-up': {
+      subject: 'Jak pokračujete s hledáním bytu?',
+      body: `Dobrý den [Jméno],
+
+naposled jsme si prohlédli byt na adrese [adresa]. Rád vím, jak jste se rozhodli.
+
+Pokud hledáte dál — mám nové nabídky v dané lokalitě. Stačí napsat.
+
+S pozdravem
+[Vaše jméno]`
+    },
+    'Uzavření': {
+      subject: 'Nájemní smlouva — [adresa]',
+      body: `Dobrý den [Jméno],
+
+v příloze zasílám návrh nájemní smlouvy pro byt na adrese [adresa].
+
+Nájemné: [cena] Kč/měsíc
+Kauce: [kauce] Kč (vrácena po ukončení nájmu)
+Termín nastěhování: [datum]
+
+Prosím o prostudování a případné připomínky do [datum].
+
+S pozdravem
+[Vaše jméno]`
+    }
+  }
+}
+
+// ─── REAL ESTATE DISCOVERY PHASES ──────────────────────────────────────────────
+const phasesRE = [
+  { id:'prep', label:'Příprava', title:'Příprava před schůzkou', meta:'5 minut před schůzkou',
+    script: null,
+    questions:['Vím typ nemovitosti a adresu','Zkontroloval jsem ceny v okolí (Sreality, RK)','Vím motivaci klienta (prodej kvůli čemu?)','Mám s sebou prezentaci RK','Vím tržní dobu prodeje v lokalitě'],
+    tips:{ label:'Klíčová příprava', items:['Podívej se na srovnatelné prodeje za 6 měsíců v lokalitě','Zjisti průměrnou dobu prodeje v oblasti','Připrav si 3 klíčové argumenty proč vybrat tebe'] },
+    namitky: null
+  },
+  { id:'open', label:'Otevření', title:'Otevření schůzky', meta:'0–5 min · Navázat důvěru',
+    script:{ label:'Úvod', text:'"Dobrý den, jsem rád že se setkáváme osobně. Dnes bych rád pochopil vaši situaci a nemovitost, ukázal vám co vidím na trhu, a společně se rozhodli zda a jak spolupracovat. Bude to asi 45 minut — hodí se vám to tak?"' },
+    questions:['Klient je uvolněný a důvěřující','Potvrdili jsme agendu schůzky'],
+    tips:{ label:'Budování důvěry', items:['Ptej se na příběh nemovitosti — lidé rádi vyprávějí','Neukazuj cenu dříve než pochopíš situaci','Fokus: pochopit, ne prodat'] },
+    namitky: null
+  },
+  { id:'diag', label:'Diagnostika', title:'Prohlídka a diagnostika', meta:'5–20 min · Pochopit situaci',
+    script:{ label:'Otevírací otázka', text:'"Můžete mi říct o nemovitosti víc? Co vás vede k prodeji právě teď?"' },
+    questions:['Znám důvod prodeje','Vím o stáří a stavu nemovitosti','Znám plány klienta po prodeji','Vím zda je nemovitost právně čistá','Znám časovou urgenci prodeje','Vím o případné hypotéce nebo zástavě'],
+    tips:{ label:'Co hledáš', items:['Urgence = rychlý prodej za dobrou cenu (tvoje silná karta)','Žádná urgence = klient chce max. cenu (zdlouhavé vyjednávání)','Právní komplikace = upozorni a navrhni řešení','Rozvedení/dědictví = citlivě, ale buď konkrétní'] },
+    namitky: null
+  },
+  { id:'cena', label:'Ocenění', title:'Ocenění nemovitosti', meta:'20–30 min · Klíčová fáze',
+    script:{ label:'Jak prezentovat cenu', text:'"Na základě srovnatelných prodejů v této lokalitě za posledních 6 měsíců vidím tržní cenu v rozmezí [X–Y Kč]. Doporučuji inzerovat za [Z Kč] — to přitáhne vážné kupující a prodej proběhne nejrychleji. Příliš vysoká cena zchladí zájem a nemovitost ztratí atraktivitu."' },
+    questions:['Prezentoval jsem srovnatelné prodeje','Vysvětlil jsem vliv přeceněnosti na délku prodeje','Klient rozumí doporučené ceně','Shodli jsme se na cílovém rozmezí'],
+    tips:{ label:'Cenová strategie', items:['Ukáž konkrétní data — ne odhady','Přeceněná nemovitost = stigma na trhu','Ideální: 5 % nad tržní hodnotou jako vyjednávací prostor','Říkej "tržní data" ne "já si myslím"'] },
+    namitky: [
+      { q:'"Sousedé prodávali za více."', a:'"Kolik a jak dlouho trvalo prodej? Přeceněné nemovitosti leží na trhu měsíce a pak se prodají pod cenou. Chceme prodat dobře a rychle."' },
+      { q:'"Potřebuji aspoň X Kč."', a:'"Rozumím. Pojďme spočítat — po odečtení daní, provize a případné hypotéky, kolik skutečně potřebujete mít v ruce?"' },
+    ]
+  },
+  { id:'offer', label:'Nabídka', title:'Prezentace spolupráce', meta:'30–40 min · Co dostanete',
+    script:{ label:'Jak prezentovat služby', text:'"Co vám nabízím: profesionální fotografie, homestaging poradenství, inzerci na všech hlavních portálech, aktivní oslovení mé databáze [X] poptávajících, právní servis přes ověřenou advokátní kancelář, a doproázení až k předání klíčů. Moje provize je [X %] z kupní ceny — platíte pouze při úspěšném prodeji."' },
+    questions:['Prezentoval jsem konkrétní benefity','Ukázal jsem ukázkové fotografie a marketing','Vysvětlil jsem exkluzivitu a proč je výhodná','Vysvětlil jsem princip provize'],
+    tips:{ label:'Klíčové argumenty', items:['Provize = platba za úspěch, ne za snahu','Databáze kupujících = zkratka k prodeji','Právní servis = klid a bezpečí'] },
+    namitky: [
+      { q:'"Proč exkluzivita?"', a:'"Exkluzivita mi dává jistotu, že mohu investovat maximum — profesionální foto, kampaně, čas. Bez ní makléři nemovitost nabídnou pasivně a soutěží kdo ji prodá první. Výsledek je horší."' },
+      { q:'"Jiná RK nabídla nižší provizi."', a:'"Nižší provize znamená méně investic do marketingu. Lepší otázka je: kdo prodá rychleji a za lepší cenu? Rád ukážu reference."' },
+      { q:'"Zkusím to prodat sám."', a:'"To je vaše právo. Průzkumy ukazují, že přímý prodej trvá průměrně 2x déle a realizuje se za nižší cenu. Pokud se za 30 dní neprodá, rád se ozvím."' },
+    ]
+  },
+  { id:'close', label:'Uzavření', title:'Uzavření spolupráce', meta:'40–45 min · Next step',
+    script:{ label:'Pokud je zájem', text:'"Výborně. Pošlu vám dnes smlouvu o zprostředkování — podíváte se na ni a do pátku mi dejte vědět. Zároveň domluvím fotografa na příští týden. Jakmile jsou fotky hotové, spouštíme inzerci. Obvykle první vážní zájemci přicházejí do 2 týdnů."' },
+    questions:['Dohodli jsme konkrétní next step','Klient ví co se bude dít dál','Domluvili jsme termín fotografa','Do 24h pošlu smlouvu a shrnutí'],
+    tips:{ label:'Pravidlo uzavření', items:['Vždy konkrétní next step s datem','Zájem → smlouva dnes nebo zítra','Váhání → zjisti co chybí k rozhodnutí','NIKDY nekonči bez dalšího data kontaktu'] },
+    namitky: null
+  },
+]
+
+const EmailTemplates = ({ industry }) => {
+  const isRE = industry === 'real-estate'
+  const cfg = getIndustryCfg(industry)
+  const activeTemplates = isRE ? emailTemplatesRE : emailTemplates
+  const activeFaze = isRE ? ['První kontakt','Po prohlídce','Follow-up','Uzavření'] : FAZE
+  const [produkt, setProdukt] = useState(cfg.produkty[0])
+  const [faze, setFaze] = useState(activeFaze[0])
   const [copied, setCopied] = useState(false)
 
-  const t = emailTemplates[produkt]?.[faze]
+  const t = activeTemplates[produkt]?.[faze]
 
   const copy = () => {
     if (!t) return
@@ -1588,7 +1974,7 @@ const EmailTemplates = () => {
         <div>
           <div style={{fontSize:12,color:'#888',marginBottom:6,fontWeight:500}}>Produkt</div>
           <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
-            {PRODUKTY.map(p => (
+            {cfg.produkty.map(p => (
               <button key={p} onClick={() => setProdukt(p)} style={{
                 padding:'5px 12px', borderRadius:8, fontSize:12, cursor:'pointer',
                 border:`0.5px solid ${produkt===p?'#534AB7':'#e0e0e0'}`,
@@ -1603,7 +1989,7 @@ const EmailTemplates = () => {
       </div>
 
       <div style={{display:'flex',gap:4,marginBottom:20}}>
-        {FAZE.map(f => (
+        {activeFaze.map(f => (
           <button key={f} onClick={() => setFaze(f)} style={{
             padding:'6px 16px', borderRadius:8, fontSize:13, cursor:'pointer',
             border:`0.5px solid ${faze===f?'#1D9E75':'#e0e0e0'}`,
@@ -2286,8 +2672,62 @@ const PruvodceStrategii = () => {
 }
 
 // ─── PRODUKTY PŘEHLED ────────────────────────────────────────────────────────
-const ProduktyPrehled = () => {
-  const vsechny = Object.entries(PRODUKTY_INFO)
+
+// ─── REAL ESTATE PRODUKTY INFO ──────────────────────────────────────────────
+const PRODUKTY_INFO_RE = {
+  'Prodej nemovitosti': {
+    popis: 'Kompletní zprostředkování prodeje — ocenění, marketing, právní servis, předání klíčů.',
+    cena: 'Provize 3–5 % z prodejní ceny',
+    typ: 'Provizní spolupráce',
+    barva: '#0F6E56', bg: '#E1F5EE',
+    emaily: ['První kontakt','Po prohlídce','Follow-up','Uzavření'],
+    usp: ['Profesionální fotografie a homestaging','Inzerce na Sreality, Bezrealitky, Reality.cz','Databáze aktivních kupujících','Právní servis od A do Z'],
+  },
+  'Koupě — zastupuji kupujícího': {
+    popis: 'Zastupování kupujícího — hledání, prohlídky, vyjednávání ceny, due diligence, smlouvy.',
+    cena: 'Provize 1–3 % z kupní ceny nebo fixní odměna',
+    typ: 'Zastupování klienta',
+    barva: '#185FA5', bg: '#E6F1FB',
+    emaily: ['První kontakt','Po prohlídce','Follow-up','Uzavření'],
+    usp: ['Přístup k nemovitostem před zveřejněním','Nezávislé ocenění a due diligence','Vyjednávání nejlepší ceny','Koordinace hypotéky a právníka'],
+  },
+  'Pronájem': {
+    popis: 'Zprostředkování pronájmu — inzerce, výběr nájemníků, smlouvy, předávací protokol.',
+    cena: 'Provize 1 měsíční nájem',
+    typ: 'Pronájem',
+    barva: '#854F0B', bg: '#FAEEDA',
+    emaily: ['První kontakt','Po prohlídce','Follow-up','Uzavření'],
+    usp: ['Screening nájemníků (platební morálka)','Profesionální inzerce','Nájemní smlouva dle aktuální legislativy','Předávací protokol s foto dokumentací'],
+  },
+  'Ocenění': {
+    popis: 'Tržní ocenění nemovitosti — srovnávací analýza, posudek pro banku nebo dědické řízení.',
+    cena: 'Od 3 500 Kč',
+    typ: 'Jednorázová služba',
+    barva: '#534AB7', bg: '#EEEDFE',
+    emaily: ['První kontakt'],
+    usp: ['Srovnávací analýza trhu','Posudek akceptovaný bankami','Výstup do 5 pracovních dní'],
+  },
+  'Správa nemovitosti': {
+    popis: 'Kompletní správa pronajímané nemovitosti — komunikace s nájemníky, údržba, platby.',
+    cena: '5–10 % z měsíčního nájmu',
+    typ: 'Opakující se služba',
+    barva: '#27500A', bg: '#EAF3DE',
+    emaily: ['První kontakt'],
+    usp: ['24/7 komunikace s nájemníky','Koordinace oprav a údržby','Měsíční výpisy a reporting','Daňová optimalizace příjmů z pronájmu'],
+  },
+  'Investiční poradenství': {
+    popis: 'Analýza investičních příležitostí — výnosnost, rizika, financování, cashflow modely.',
+    cena: 'Konzultace od 2 500 Kč/hod',
+    typ: 'Poradenství',
+    barva: '#633806', bg: '#FAEEDA',
+    emaily: ['První kontakt'],
+    usp: ['Cashflow analýza a ROI výpočty','Přístup k off-market nabídkám','Due diligence před koupí','Daňová struktura investice'],
+  },
+}
+
+const ProduktyPrehled = ({ industry }) => {
+  const activeInfo = industry === 'real-estate' ? PRODUKTY_INFO_RE : PRODUKTY_INFO
+  const vsechny = Object.entries(activeInfo)
   return (
     <div>
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))',gap:14}}>
@@ -2767,7 +3207,9 @@ Začni přímo předmětem bez jakéhokoliv úvodu.`
 }
 
 // ─── DASHBOARD ───────────────────────────────────────────────────────────────
-const Dashboard = ({ leads, onOpen }) => {
+const Dashboard = ({ leads, onOpen, industry }) => {
+  const cfg = getIndustryCfg(industry)
+  const isRE = industry === 'real-estate'
   const [widgets, setWidgets] = useState(() => {
     try {
       const s = localStorage.getItem('dashboard_widgets')
@@ -3681,16 +4123,16 @@ export default function App() {
 
   const NAV = [
     { id:'dashboard', icon:'📊', label:'Dashboard' },
-    { id:'kanban', icon:'⬛', label:'Kanban' },
+    { id:'kanban', icon:'⬛', label: userProfile?.industry === 'real-estate' ? 'Pipeline' : 'Kanban' },
     { id:'table', icon:'☰', label:'Tabulka' },
-    { id:'followup', icon:'📅', label:'Follow-up dnes' },
+    { id:'followup', icon:'📅', label: userProfile?.industry === 'real-estate' ? 'Dnešní akce' : 'Follow-up dnes' },
     { id:'ukoly', icon:'✅', label:'Úkoly' },
-    { id:'multiplikatori', icon:'🤝', label:'Multiplikátoři' },
-    { id:'discovery', icon:'📞', label:'Discovery script' },
+    { id:'multiplikatori', icon:'🤝', label: userProfile?.industry === 'real-estate' ? 'Partneři / referrali' : 'Multiplikátoři' },
+    { id:'discovery', icon:'📞', label: userProfile?.industry === 'real-estate' ? 'Script schůzky' : 'Discovery script' },
     { id:'email', icon:'✉️', label:'Email šablony' },
     { id:'dokumenty', icon:'📄', label:'Dokumenty' },
     { id:'strategie', icon:'🎯', label:'Strategický plán' },
-    { id:'produkty', icon:'📦', label:'Produkty' },
+    { id:'produkty', icon:'📦', label: userProfile?.industry === 'real-estate' ? 'Nabídky / produkty' : 'Produkty' },
     { id:'pruvodce', icon:'🗺️', label:'Průvodce strategií' },
   ]
 
@@ -3777,8 +4219,7 @@ export default function App() {
               <div style={{fontSize:12,color:'#888',marginBottom:8,fontWeight:500}}>Vyberte vaše odvětví *</div>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8}}>
                 {[
-                  {val:'cybersecurity', icon:'🛡️', label:'Kyber-
-bezpečnost'},
+                  {val:'cybersecurity', icon:'🛡️', label:'Kyberbezpečnost'},
                   {val:'real-estate', icon:'🏠', label:'Reality'},
                   {val:'general', icon:'🏢', label:'Jiné'},
                 ].map(o => (
@@ -3987,7 +4428,7 @@ bezpečnost'},
                 <option value="">Všichni</option>
                 {['Karel','Radim','Aleš'].map(o=><option key={o}>{o}</option>)}
               </select>
-              <button className="btn accent" onClick={() => setModal('new')}>+ Nový lead</button>
+              <button className="btn accent" onClick={() => setModal('new')}>{userProfile?.industry === 'real-estate' ? '+ Nový klient' : '+ Nový lead'}</button>
         <button className="btn" onClick={() => {
           const cols = ['Firma','Osoba','Role','Segment','Email','Produkt','Stav','Cena','Vede','Follow-up']
           const rows = filtered.map(l => [l.firma,l.osoba,l.role,l.segment,l.email,l.produkt,l.stav,l.cena,l.vede,l.followup])
@@ -4006,18 +4447,18 @@ bezpečnost'},
         )}
 
         {loading && <div className="loading">Načítám data...</div>}
-        {!loading && tab==='kanban' && <KanbanView leads={filtered} onOpen={setDetail} onStavChange={changeStav} />}
+        {!loading && tab==='kanban' && <KanbanView leads={filtered} onOpen={setDetail} onStavChange={changeStav} industry={userProfile?.industry} />}
         {!loading && tab==='table' && <TableView leads={filtered} onOpen={setDetail} />}
         {!loading && tab==='followup' && <FollowupView leads={filtered} onOpen={setDetail} />}
         {!loading && tab==='multiplikatori' && <MultiplikatoriView leads={filtered} onOpen={setDetail} />}
-        {tab==='discovery' && <DiscoveryScript />}
-        {tab==='email' && <EmailTemplates />}
+        {tab==='discovery' && <DiscoveryScript industry={userProfile?.industry} />}
+        {tab==='email' && <EmailTemplates industry={userProfile?.industry} />}
         {tab==='dokumenty' && <PdfDocuments />}
-        {tab==='dashboard' && <Dashboard leads={leads} onOpen={setDetail} />}
+        {tab==='dashboard' && <Dashboard leads={leads} onOpen={setDetail} industry={userProfile?.industry} />}
         {tab==='ukoly' && <UkolyView leads={leads} onLeadChange={onLeadChange} />}
         {tab==='strategie' && <StrategickyPlan />}
         {tab==='pruvodce' && <PruvodceStrategii />}
-        {tab==='produkty' && <ProduktyPrehled />}
+        {tab==='produkty' && <ProduktyPrehled industry={userProfile?.industry} />}
       </div>
 
       {detail && (
@@ -4034,6 +4475,7 @@ bezpečnost'},
           onSave={async (form) => { await saveLead(form); if(detail) setDetail({...detail,...form}) }}
           onDelete={deleteLead}
           onClose={() => setModal(null)}
+          industry={userProfile?.industry}
         />
       )}
     </div>

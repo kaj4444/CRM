@@ -129,7 +129,7 @@ const INDUSTRY_CONFIG = {
       firma:'', osoba:'', role:'CEO', segment:'Přímý klient',
       email:'', telefon:'', odvetvi:'Energetika', zdroj:'Vlastní síť',
       produkt:'Review NIS2', stav:'Lead', cena:'', prob:'Nízká (0–30 %)',
-      vede:'Karel', followup:'', d1:'', namitka:'', poznamky:'', stitky:''
+      vede:'Karel', followup:'', d1:'', namitka:'', poznamky:'', stitky:'', web:''
     },
     firmLabel: 'Název firmy',
     klientLabel: 'Kontaktní osoba',
@@ -150,7 +150,7 @@ const INDUSTRY_CONFIG = {
       firma:'', osoba:'', role:'Kupující', segment:'Přímý klient',
       email:'', telefon:'', odvetvi:'Byt', zdroj:'Vlastní síť',
       produkt:'Prodej nemovitosti', stav:'Poptávka', cena:'', prob:'Nízká (0–30 %)',
-      vede:'Karel', followup:'', d1:'', namitka:'', poznamky:'', stitky:'',
+      vede:'Karel', followup:'', d1:'', namitka:'', poznamky:'', stitky:'', web:'',
       lokalita:'', dispozice:'', plocha:''
     },
     firmLabel: 'Název nemovitosti / adresa',
@@ -172,7 +172,7 @@ const INDUSTRY_CONFIG = {
       firma:'', osoba:'', role:'CEO / Majitel', segment:'Přímý klient',
       email:'', telefon:'', odvetvi:'Management / strategie', zdroj:'Vlastní síť',
       produkt:'Strategický audit', stav:'Poptávka', cena:'', prob:'Nízká (0–30 %)',
-      vede:'Karel', followup:'', d1:'', namitka:'', poznamky:'', stitky:''
+      vede:'Karel', followup:'', d1:'', namitka:'', poznamky:'', stitky:'', web:''
     },
     firmLabel: 'Název klienta / firmy',
     klientLabel: 'Kontaktní osoba (jméno)',
@@ -389,12 +389,13 @@ const LeadDetail = ({ lead, onEdit, onClose }) => {
     if (!lead.firma) return alert('Lead musí mít název firmy.')
     setNabidkaLoading(true)
     try {
-      const webQuery = [lead.firma, lead.email ? lead.email.split('@')[1] : '', lead.odvetvi || ''].filter(Boolean).join(' ')
+      const webQuery = [lead.firma, lead.web || (lead.email ? lead.email.split('@')[1] : ''), lead.odvetvi || ''].filter(Boolean).join(' ')
       const produktyInfo = lead.produkt ? `Navrhovaný produkt/služba: ${lead.produkt}` : ''
       const prompt = `Jsi expert na B2B prodej a psychologii přesvědčování. Tvým úkolem je vytvořit personalizovanou obchodní nabídku.
 
 KLIENT:
 - Název firmy: ${lead.firma}
+- Web: ${lead.web || 'neznámý'}
 - Kontakt: ${lead.osoba || 'neznámý'} (${lead.role || ''})
 - Odvětví: ${lead.odvetvi || 'nespecifikováno'}
 - Segment: ${lead.segment || ''}
@@ -402,7 +403,7 @@ ${produktyInfo}
 - Poznámky o klientovi: ${lead.poznamky || 'žádné'}
 
 INSTRUKCE:
-1. Prohledej dostupné informace o firmě "${lead.firma}"${lead.email ? ' (' + lead.email.split('@')[1] + ')' : ''}
+1. Prohledej web ${lead.web ? lead.web : ""} a veškeré dostupné informace o firmě "${lead.firma}" — web, LinkedIn, PR články, sociální sítě, recenze
 2. Vytvoř personalizovanou nabídku podle SPIN + Challenger Sale + Value Proposition frameworku
 
 STRUKTURA NABÍDKY (přesně toto pořadí):
@@ -626,6 +627,7 @@ Piš česky. Buď konkrétní a personální — vyhni se generickým frázím. 
           {lead.followup && <div><span style={{color:'#888'}}>Follow-up: </span>{lead.followup}</div>}
           {lead.vede && <div><span style={{color:'#888'}}>Vede: </span>{lead.vede}</div>}
           {lead.zdroj && <div><span style={{color:'#888'}}>Zdroj: </span>{lead.zdroj}</div>}
+              {lead.web && <div><span style={{color:'#888'}}>Web: </span><a href={lead.web.startsWith('http') ? lead.web : 'https://'+lead.web} target="_blank" rel="noreferrer" style={{color:'#534AB7'}}>{lead.web}</a></div>}
           {lead.prob && <div><span style={{color:'#888'}}>Pravd.: </span>{lead.prob}</div>}
         </div>
 
@@ -928,6 +930,7 @@ const LeadModal = ({ lead, onSave, onDelete, onClose, industry }) => {
             <div className="form-row"><label>Email</label><input type="email" {...fi('email')} /></div>
             <div className="form-row"><label>Telefon</label><input {...fi('telefon')} /></div>
           </div>
+          <div className="form-row"><label>Web klienta</label><input {...fi('web')} placeholder="https://www.firma.cz" /></div>
           <div className="form-grid">
             <div className="form-row"><label>Odvětví</label>
               <select {...fi('odvetvi')}>{cfg.odvetvi.map(o=><option key={o}>{o}</option>)}</select>

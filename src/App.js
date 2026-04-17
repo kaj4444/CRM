@@ -5027,6 +5027,401 @@ const useCreateUkol = (leads, onUkolCreated) => {
   return { openUkol, modal }
 }
 
+
+// ─── KALENDÁŘ ─────────────────────────────────────────────────────────────────
+const KalendarView = ({ leads, teamMembers, userProfile, session }) => {
+  const [udalosti, setUdalosti] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [modal, setModal] = useState(null)
+  const [pohled, setPohled] = useState('mesic') // mesic | tyden | seznam
+  const [sdilenyPohled, setSdilenyPohled] = useState(false)
+  const [dnesniDen, setDnesniDen] = useState(new Date())
+  const [vybraneDatum, setVybraneDatum] = useState(null)
+
+  const TYP_BARVY = {
+    schuzka: { bg:'#EEEDFE', color:'#534AB7', icon:'🤝' },
+    call: { bg:'#E1F5EE', color:'#0F6E56', icon:'📞' },
+    demo: { bg:'#FAEEDA', color:'#854F0B', icon:'💻' },
+    deadline: { bg:'#FCEBEB', color:'#791F1F', icon:'⚠️' },
+    jine: { bg:'#f5f5f3', color:'#888', icon:'📌' },
+  }
+
+  const fetchUdalosti = async () => {
+    try {
+      const { data } = await supabase
+        .from('kalendar_udalosti')
+        .select('*')
+        .order('datum', { ascending: true })
+      setUdalosti(data || [])
+    } catch(e) { console.error(e) }
+    setLoading(false)
+  }
+
+  useEffect(() => { fetchUdalosti() }, [])
+
+  const saveUdalost = async (form, smazat) => {
+    if (smazat) {
+      await supabase.from('kalendar_udalosti').delete().eq('id', modal.id)
+      setModal(null)
+      fetchUdalosti()
+      return
+    }
+    if (modal?.id) {
+      await supabase.from('kalendar_udalosti').update({ ...form, user_id: session?.user?.id }).eq('id', modal.id)
+    } else {
+      await supabase.from('kalendar_udalosti').insert([{ ...form, user_id: session?.user?.id }])
+    }
+    setModal(null)
+    fetchUdalosti()
+  }
+
+  const getDnyMesice = (rok, mesic) => {
+    const prvniDen = new Date(rok, mesic, 1)
+    const posledniDen = new Date(rok, mesic + 1, 0)
+    const dni = []
+    const startDen = prvniDen.getDay() === 0 ? 6 : prvniDen.getDay() - 1
+    for (let i = 0; i < startDen; i++) {
+      const d = new Date(rok, mesic, -startDen + i + 1)
+      dni.push({ datum: d, aktualni: false })
+    }
+    for (let i = 1; i <= posledniDen.getDate(); i++) {
+      dni.push({ datum: new Date(rok, mesic, i), aktualni: true })
+    }
+    while (dni.length % 7 !== 0) {
+      const last = dni[dni.length - 1].datum
+      dni.push({ datum: new Date(last.getTime() + 86400000), aktualni: false })
+    }
+    return dni
+  }
+
+  const formatDate = (d) => d.toISOString().slice(0, 10)
+  const dnesStr = formatDate(new Date())
+  const rok = dnesniDen.getFullYear()
+  const mesic = dnesniDen.getMonth()
+  const MESICE_NAZVY = ['Leden','Únor','Březen','Duben','Květen','Červen','Červenec','Srpen','Září','Říjen','Listopad','Prosinec']
+  const DNY = ['Po','Út','St','Čt','Pá','So','Ne']
+
+  const udalostiDne = (datStr) => udalosti.filter(u => {
+    if (sdilenyPohled) return u.datum === datStr
+    return u.datum === datStr && (u.user_id === session?.user?.id || u.sdilena)
+  })
+
+  const dni = getDnyMesice(rok, mesic)
+
+  // Týdenní pohled
+  const getStartOfWeek = (d) => {
+    const day = d.getDay()
+    const diff = day === 0 ? -6 : 1 - day
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate() + diff)
+  }
+  const startTydne = getStartOfWeek(dnesniDen)
+  const tyden = Array.from({length: 7}, (_, i) => new Date(startTydne.getTime() + i * 86400000))
+  const HODINY = Array.from({length: 14}, (_, i) => i + 7) // 7:00 - 20:00
+
+  return (
+    <div>
+      {/* Toolbar */}
+      <div style={{display:'flex',gap:8,marginBottom:16,alignItems:'center',flexWrap:'wrap'}}>
+        <div style={{display:'flex',gap:4,background:'#f5f5f3',borderRadius:8,padding:3}}>
+          {['mesic','tyden','seznam'].map(p => (
+            <button key={p} onClick={() => setPohled(p)} style={{
+              padding:'5px 14px',borderRadius:6,border:'none',cursor:'pointer',
+              fontSize:12,fontFamily:'inherit',fontWeight:pohled===p?500:400,
+              background:pohled===p?'#fff':'transparent',
+              color:pohled===p?'#1a1a1a':'#888',
+              boxShadow:pohled===p?'0 1px 3px rgba(0,0,0,0.1)':'none'
+            }}>{p === 'mesic' ? 'Měsíc' : p === 'tyden' ? 'Týden' : 'Seznam'}</button>
+          ))}
+        </div>
+
+        <div style={{display:'flex',gap:4}}>
+          <button onClick={() => {
+            const d = new Date(dnesniDen)
+            if (pohled === 'mesic') d.setMonth(d.getMonth() - 1)
+            else d.setDate(d.getDate() - 7)
+            setDnesniDen(d)
+          }} style={{padding:'5px 10px',borderRadius:8,border:'0.5px solid #e0e0e0',background:'#fff',cursor:'pointer',fontSize:14}}>‹</button>
+          <button onClick={() => setDnesniDen(new Date())} style={{
+            padding:'5px 12px',borderRadius:8,border:'0.5px solid #e0e0e0',
+            background:'#fff',cursor:'pointer',fontSize:12,fontFamily:'inherit'
+          }}>Dnes</button>
+          <button onClick={() => {
+            const d = new Date(dnesniDen)
+            if (pohled === 'mesic') d.setMonth(d.getMonth() + 1)
+            else d.setDate(d.getDate() + 7)
+            setDnesniDen(d)
+          }} style={{padding:'5px 10px',borderRadius:8,border:'0.5px solid #e0e0e0',background:'#fff',cursor:'pointer',fontSize:14}}>›</button>
+        </div>
+
+        <div style={{fontWeight:500,fontSize:15}}>
+          {pohled === 'tyden'
+            ? `${formatDate(startTydne)} — ${formatDate(tyden[6])}`
+            : `${MESICE_NAZVY[mesic]} ${rok}`
+          }
+        </div>
+
+        <div style={{marginLeft:'auto',display:'flex',gap:8,alignItems:'center'}}>
+          <label style={{display:'flex',alignItems:'center',gap:6,fontSize:12,color:'#888',cursor:'pointer'}}>
+            <input type="checkbox" checked={sdilenyPohled} onChange={e => setSdilenyPohled(e.target.checked)} />
+            Sdílený týmový pohled
+          </label>
+          <button className="btn accent" onClick={() => setModal({ datum: vybraneDatum || dnesStr })}>+ Nová událost</button>
+        </div>
+      </div>
+
+      {/* Legenda typů */}
+      <div style={{display:'flex',gap:8,marginBottom:14,flexWrap:'wrap'}}>
+        {Object.entries(TYP_BARVY).map(([typ, b]) => (
+          <span key={typ} style={{fontSize:11,padding:'2px 10px',borderRadius:10,background:b.bg,color:b.color}}>
+            {b.icon} {typ.charAt(0).toUpperCase() + typ.slice(1)}
+          </span>
+        ))}
+      </div>
+
+      {/* MĚSÍČNÍ POHLED */}
+      {pohled === 'mesic' && (
+        <div style={{background:'#fff',border:'0.5px solid #e8e8e8',borderRadius:12,overflow:'hidden'}}>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',borderBottom:'0.5px solid #f0f0f0'}}>
+            {DNY.map(d => (
+              <div key={d} style={{padding:'8px 0',textAlign:'center',fontSize:11,fontWeight:500,color:'#888',borderRight:'0.5px solid #f8f8f8'}}>{d}</div>
+            ))}
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)'}}>
+            {dni.map((den, i) => {
+              const datStr = formatDate(den.datum)
+              const denUdalosti = udalostiDne(datStr)
+              const jeDnes = datStr === dnesStr
+              return (
+                <div key={i} onClick={() => { setVybraneDatum(datStr); setModal({ datum: datStr }) }}
+                  style={{
+                    minHeight:90,padding:'6px 8px',
+                    borderRight:'0.5px solid #f8f8f8',
+                    borderBottom:'0.5px solid #f8f8f8',
+                    background: !den.aktualni ? '#fafaf8' : jeDnes ? '#EEEDFE' : '#fff',
+                    cursor:'pointer',opacity:den.aktualni?1:0.4,
+                    transition:'background 0.1s'
+                  }}
+                  onMouseEnter={e => { if(den.aktualni) e.currentTarget.style.background = jeDnes ? '#E8E7FD' : '#fafaf8' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = !den.aktualni ? '#fafaf8' : jeDnes ? '#EEEDFE' : '#fff' }}
+                >
+                  <div style={{
+                    fontSize:12,fontWeight:jeDnes?700:400,
+                    color:jeDnes?'#534AB7':'#1a1a1a',
+                    marginBottom:4,
+                    ...(jeDnes ? {
+                      width:22,height:22,borderRadius:'50%',background:'#534AB7',
+                      color:'#fff',display:'flex',alignItems:'center',justifyContent:'center'
+                    } : {})
+                  }}>{den.datum.getDate()}</div>
+                  {denUdalosti.slice(0, 3).map(u => {
+                    const b = TYP_BARVY[u.typ] || TYP_BARVY.jine
+                    return (
+                      <div key={u.id} onClick={e => { e.stopPropagation(); setModal(u) }}
+                        style={{fontSize:10,padding:'2px 6px',borderRadius:4,background:b.bg,color:b.color,
+                          marginBottom:2,overflow:'hidden',whiteSpace:'nowrap',textOverflow:'ellipsis',cursor:'pointer'}}>
+                        {b.icon} {u.nazev}
+                      </div>
+                    )
+                  })}
+                  {denUdalosti.length > 3 && <div style={{fontSize:10,color:'#aaa'}}>+{denUdalosti.length-3} další</div>}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* TÝDENNÍ POHLED */}
+      {pohled === 'tyden' && (
+        <div style={{background:'#fff',border:'0.5px solid #e8e8e8',borderRadius:12,overflow:'hidden'}}>
+          <div style={{display:'grid',gridTemplateColumns:'50px repeat(7,1fr)',borderBottom:'0.5px solid #f0f0f0'}}>
+            <div />
+            {tyden.map((d, i) => {
+              const jeDnes = formatDate(d) === dnesStr
+              return (
+                <div key={i} style={{padding:'8px 4px',textAlign:'center',borderLeft:'0.5px solid #f0f0f0',
+                  background:jeDnes?'#EEEDFE':'#fff'}}>
+                  <div style={{fontSize:11,color:'#888'}}>{DNY[i]}</div>
+                  <div style={{fontSize:16,fontWeight:jeDnes?700:400,color:jeDnes?'#534AB7':'#1a1a1a'}}>{d.getDate()}</div>
+                </div>
+              )
+            })}
+          </div>
+          <div style={{maxHeight:500,overflowY:'auto'}}>
+            {HODINY.map(hodina => (
+              <div key={hodina} style={{display:'grid',gridTemplateColumns:'50px repeat(7,1fr)',borderBottom:'0.5px solid #f8f8f8',minHeight:48}}>
+                <div style={{padding:'4px 8px',fontSize:11,color:'#bbb',paddingTop:6}}>{hodina}:00</div>
+                {tyden.map((d, di) => {
+                  const datStr = formatDate(d)
+                  const denUdalosti = udalostiDne(datStr).filter(u => {
+                    if (!u.cas_od) return false
+                    const h = parseInt(u.cas_od.split(':')[0])
+                    return h === hodina
+                  })
+                  return (
+                    <div key={di} onClick={() => setModal({ datum: datStr, cas_od: `${String(hodina).padStart(2,'0')}:00` })}
+                      style={{borderLeft:'0.5px solid #f0f0f0',padding:'2px 4px',cursor:'pointer',
+                        background: formatDate(d) === dnesStr ? '#EEEDFE20' : 'transparent'}}
+                      onMouseEnter={e => e.currentTarget.style.background='#f5f5f3'}
+                      onMouseLeave={e => e.currentTarget.style.background = formatDate(d) === dnesStr ? '#EEEDFE20' : 'transparent'}
+                    >
+                      {denUdalosti.map(u => {
+                        const b = TYP_BARVY[u.typ] || TYP_BARVY.jine
+                        return (
+                          <div key={u.id} onClick={e => { e.stopPropagation(); setModal(u) }}
+                            style={{fontSize:10,padding:'3px 6px',borderRadius:4,background:b.bg,color:b.color,
+                              marginBottom:2,cursor:'pointer',borderLeft:`2px solid ${b.color}`}}>
+                            {u.cas_od?.slice(0,5)} {u.nazev}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )
+                })}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* SEZNAM POHLED */}
+      {pohled === 'seznam' && (
+        <div>
+          {loading && <div style={{color:'#aaa',padding:32,textAlign:'center'}}>Načítám...</div>}
+          {!loading && udalosti.length === 0 && (
+            <div style={{textAlign:'center',padding:48,color:'#bbb'}}>
+              <div style={{fontSize:32,marginBottom:8}}>📅</div>
+              <div>Žádné události — přidej první kliknutím na "+ Nová událost"</div>
+            </div>
+          )}
+          {Object.entries(
+            udalosti
+              .filter(u => sdilenyPohled || u.user_id === session?.user?.id || u.sdilena)
+              .reduce((acc, u) => {
+                if (!acc[u.datum]) acc[u.datum] = []
+                acc[u.datum].push(u)
+                return acc
+              }, {})
+          ).sort(([a],[b]) => a.localeCompare(b)).map(([datum, denUdalosti]) => (
+            <div key={datum} style={{marginBottom:16}}>
+              <div style={{fontSize:12,fontWeight:600,color:'#888',marginBottom:8,textTransform:'uppercase',letterSpacing:'0.05em'}}>
+                {datum === dnesStr ? '📍 Dnes' : new Date(datum + 'T12:00:00').toLocaleDateString('cs-CZ', {weekday:'long',day:'numeric',month:'long'})}
+              </div>
+              {denUdalosti.sort((a,b) => (a.cas_od||'').localeCompare(b.cas_od||'')).map(u => {
+                const b = TYP_BARVY[u.typ] || TYP_BARVY.jine
+                const lead = leads.find(l => l.id === u.lead_id)
+                return (
+                  <div key={u.id} onClick={() => setModal(u)}
+                    style={{display:'flex',gap:12,padding:'12px 16px',background:'#fff',
+                      border:'0.5px solid #e8e8e8',borderRadius:10,marginBottom:6,cursor:'pointer',
+                      borderLeft:`3px solid ${b.color}`}}
+                    onMouseEnter={e => e.currentTarget.style.background='#fafaf8'}
+                    onMouseLeave={e => e.currentTarget.style.background='#fff'}
+                  >
+                    <div style={{fontSize:20}}>{b.icon}</div>
+                    <div style={{flex:1}}>
+                      <div style={{fontWeight:500,fontSize:13,marginBottom:2}}>{u.nazev}</div>
+                      {u.popis && <div style={{fontSize:12,color:'#888'}}>{u.popis}</div>}
+                      <div style={{display:'flex',gap:8,marginTop:4,flexWrap:'wrap'}}>
+                        {u.cas_od && <span style={{fontSize:11,color:'#aaa'}}>🕐 {u.cas_od.slice(0,5)}{u.cas_do ? ' — ' + u.cas_do.slice(0,5) : ''}</span>}
+                        {lead && <span style={{fontSize:11,color:'#534AB7',background:'#EEEDFE',padding:'1px 8px',borderRadius:8}}>🔗 {lead.firma}</span>}
+                        {u.sdilena && <span style={{fontSize:11,color:'#0F6E56',background:'#E1F5EE',padding:'1px 8px',borderRadius:8}}>👥 Sdílená</span>}
+                        <span style={{fontSize:11,padding:'1px 8px',borderRadius:8,background:b.bg,color:b.color}}>{u.typ}</span>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* MODAL */}
+      {modal !== null && (
+        <KalendarModal
+          udalost={modal?.id ? modal : null}
+          defaultDatum={modal?.datum || dnesStr}
+          defaultCas={modal?.cas_od || ''}
+          leads={leads}
+          onSave={saveUdalost}
+          onClose={() => setModal(null)}
+        />
+      )}
+    </div>
+  )
+}
+
+const KalendarModal = ({ udalost, defaultDatum, defaultCas, leads, onSave, onClose }) => {
+  const [form, setForm] = useState(udalost || {
+    nazev: '', popis: '', datum: defaultDatum, cas_od: defaultCas,
+    cas_do: '', typ: 'schuzka', lead_id: '', sdilena: false, barva: '#534AB7'
+  })
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal" style={{maxWidth:480}}>
+        <div className="modal-head">
+          <h2>{udalost ? 'Upravit událost' : 'Nová událost'}</h2>
+          <button className="close-btn" onClick={onClose}>&times;</button>
+        </div>
+        <div className="modal-body">
+          <div className="form-row"><label>Název *</label>
+            <input value={form.nazev} onChange={e=>set('nazev',e.target.value)} placeholder="Schůzka s klientem..." autoFocus />
+          </div>
+          <div className="form-grid">
+            <div className="form-row"><label>Typ</label>
+              <select value={form.typ} onChange={e=>set('typ',e.target.value)}>
+                {['schuzka','call','demo','deadline','jine'].map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase()+t.slice(1)}</option>)}
+              </select>
+            </div>
+            <div className="form-row"><label>Datum</label>
+              <input type="date" value={form.datum} onChange={e=>set('datum',e.target.value)} />
+            </div>
+          </div>
+          <div className="form-grid">
+            <div className="form-row"><label>Čas od</label>
+              <input type="time" value={form.cas_od} onChange={e=>set('cas_od',e.target.value)} />
+            </div>
+            <div className="form-row"><label>Čas do</label>
+              <input type="time" value={form.cas_do} onChange={e=>set('cas_do',e.target.value)} />
+            </div>
+          </div>
+          <div className="form-row"><label>Popis</label>
+            <textarea value={form.popis} onChange={e=>set('popis',e.target.value)} placeholder="Agenda, poznámky..." style={{height:72}} />
+          </div>
+          <div className="form-row"><label>Propojit s leadem</label>
+            <select value={form.lead_id} onChange={e=>set('lead_id',e.target.value)}>
+              <option value="">— žádný —</option>
+              {leads.map(l => <option key={l.id} value={l.id}>{l.firma}</option>)}
+            </select>
+          </div>
+          <div style={{display:'flex',alignItems:'center',gap:8,padding:'8px 0'}}>
+            <input type="checkbox" id="sdilena" checked={form.sdilena} onChange={e=>set('sdilena',e.target.checked)} />
+            <label htmlFor="sdilena" style={{fontSize:13,cursor:'pointer'}}>
+              👥 Sdílená událost — vidí ji celý tým
+            </label>
+          </div>
+          <div style={{display:'flex',gap:8,marginTop:4}}>
+            {['#534AB7','#0F6E56','#185FA5','#854F0B','#791F1F','#27500A'].map(c => (
+              <button key={c} onClick={() => set('barva',c)} style={{
+                width:24,height:24,borderRadius:'50%',background:c,cursor:'pointer',border:'none',
+                outline:form.barva===c?'2.5px solid #333':'2px solid transparent',outlineOffset:2
+              }} />
+            ))}
+          </div>
+        </div>
+        <div className="modal-foot">
+          {udalost && <button className="btn danger" onClick={() => { if(window.confirm('Smazat událost?')) onSave(null,true) }}>Smazat</button>}
+          <button className="btn" onClick={onClose}>Zrušit</button>
+          <button className="btn accent" onClick={() => { if(!form.nazev.trim()){alert('Zadej název');return} onSave(form) }}>Uložit</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── HLAVNÍ APP ───────────────────────────────────────────────────────────────
 class ErrorBoundary extends React.Component {
   constructor(props) { super(props); this.state = { error: null } }
@@ -5078,19 +5473,19 @@ export default function App() {
     setTeamMembers(all)
   }
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const DEFAULT_NAV = ['dashboard','kanban','table','followup','ukoly','multiplikatori','discovery','email','dokumenty','strategie','produkty','pruvodce']
+  const DEFAULT_NAV = ['dashboard','kanban','table','followup','ukoly','kalendar','multiplikatori','discovery','email','dokumenty','strategie','produkty','pruvodce']
   const [navOrder, setNavOrder] = useState(() => {
     try {
       const saved = localStorage.getItem('riscare_nav_order')
       if (saved) {
         const parsed = JSON.parse(saved)
-        const allIds = ['dashboard','kanban','table','followup','ukoly','multiplikatori','discovery','email','dokumenty','strategie','produkty','pruvodce']
+        const allIds = ['dashboard','kanban','table','followup','ukoly','kalendar','multiplikatori','discovery','email','dokumenty','strategie','produkty','pruvodce']
         const valid = parsed.filter(id => allIds.includes(id))
         const missing = allIds.filter(id => !valid.includes(id))
         return [...valid, ...missing]
       }
     } catch(e) {}
-    return ['dashboard','kanban','table','followup','ukoly','multiplikatori','discovery','email','dokumenty','strategie','produkty','pruvodce']
+    return ['dashboard','kanban','table','followup','ukoly','kalendar','multiplikatori','discovery','email','dokumenty','strategie','produkty','pruvodce']
   })
   const [dragNavId, setDragNavId] = useState(null)
   const [dragNavOver, setDragNavOver] = useState(null)
@@ -5306,6 +5701,7 @@ export default function App() {
     { id:'table', icon:'☰', label: (userProfile?.industry||'general')==='cybersecurity' ? 'Tabulka' : 'Přehled klientů' },
     { id:'followup', icon:'📅', label: (userProfile?.industry || 'general') === 'real-estate' ? 'Dnešní akce' : 'Follow-up dnes' },
     { id:'ukoly', icon:'✅', label:'Úkoly' },
+    { id:'kalendar', icon:'📅', label: 'Kalendář' },
     { id:'multiplikatori', icon:'🤝', label: (userProfile?.industry || 'general') === 'real-estate' ? 'Partneři / referrali' : 'Multiplikátoři' },
     { id:'discovery', icon:'📞', label: (userProfile?.industry || 'general') === 'real-estate' ? 'Script schůzky' : 'Discovery script' },
     { id:'email', icon:'✉️', label:'Email šablony' },
@@ -5442,7 +5838,7 @@ export default function App() {
       <div className="mobile-topbar">
         <div style={{display:'flex',alignItems:'center',gap:0}}>
           <span className="mob-logo">MIKOMI OS</span>
-          <span className="mob-tab"> · {{kanban:'Pipeline',table:'Tabulka',followup:'Follow-up',ukoly:'Úkoly',multiplikatori:'Multiplikátoři',discovery:'Discovery',email:'Emaily',dokumenty:'Dokumenty',strategie:'Strategie',produkty:'Produkty',pruvodce:'Průvodce'}[tab]||tab}</span>
+          <span className="mob-tab"> · {{kanban:'Pipeline',table:'Tabulka',followup:'Follow-up',ukoly:'Úkoly',kalendar:'Kalendář',multiplikatori:'Multiplikátoři',discovery:'Discovery',email:'Emaily',dokumenty:'Dokumenty',strategie:'Strategie',produkty:'Produkty',pruvodce:'Průvodce'}[tab]||tab}</span>
         </div>
         <button className="hamburger-btn" onClick={() => setDrawerOpen(true)} aria-label="Menu">
           <span/><span/><span/>
@@ -5608,8 +6004,8 @@ export default function App() {
 
       <div className="main">
         <div className="page-header">
-          <h1>{{dashboard:'Dashboard',kanban:'Pipeline',table:'Všechny leady',followup:'Follow-up dnes',ukoly:'Úkoly',multiplikatori:'Multiplikátoři',discovery:'Discovery call script',email:'Email šablony',dokumenty:'Dokumenty',strategie:'Strategický plán prodeje',produkty:'Portfolio produktů',pruvodce:'Průvodce strategií'}[tab]}</h1>
-          <p>{{dashboard:'Přehled všeho na jednom místě — přizpůsobitelný',kanban:'Vizuální přehled obchodů podle fáze',table:'Kompletní seznam s filtry',followup:'Leady které čekají na tvůj kontakt',ukoly:'Propojené úkoly — splnění automaticky aktualizuje lead',multiplikatori:'Partneři a zprostředkovatelé',discovery:'Průvodce pro 30minutový prodejní hovor',email:'Šablony připravené k odeslání',dokumenty:'Factsheets, nabídky a další PDF',strategie:'Strategický brainstorming — odpovědi se ukládají automaticky',produkty:'Přehled produktů a služeb s popisky a cenami',pruvodce:'Krok za krokem — co dělat a kdy. Sdílené pro celý tým.'}[tab]}</p>
+          <h1>{{dashboard:'Dashboard',kanban:'Pipeline',table:'Všechny leady',followup:'Follow-up dnes',ukoly:'Úkoly',kalendar:'Kalendář',multiplikatori:'Multiplikátoři',discovery:'Discovery call script',email:'Email šablony',dokumenty:'Dokumenty',strategie:'Strategický plán prodeje',produkty:'Portfolio produktů',pruvodce:'Průvodce strategií'}[tab]}</h1>
+          <p>{{dashboard:'Přehled všeho na jednom místě — přizpůsobitelný',kanban:'Vizuální přehled obchodů podle fáze',table:'Kompletní seznam s filtry',followup:'Leady které čekají na tvůj kontakt',ukoly:'Propojené úkoly — splnění automaticky aktualizuje lead',kalendar:'Osobní i sdílený týmový pohled na schůzky a cally',multiplikatori:'Partneři a zprostředkovatelé',discovery:'Průvodce pro 30minutový prodejní hovor',email:'Šablony připravené k odeslání',dokumenty:'Factsheets, nabídky a další PDF',strategie:'Strategický brainstorming — odpovědi se ukládají automaticky',produkty:'Přehled produktů a služeb s popisky a cenami',pruvodce:'Krok za krokem — co dělat a kdy. Sdílené pro celý tým.'}[tab]}</p>
         </div>
 
         {['kanban','table','followup','multiplikatori'].includes(tab) && (
@@ -5663,6 +6059,7 @@ export default function App() {
         {tab==='dokumenty' && <PdfDocuments />}
         {tab==='dashboard' && <Dashboard leads={leads} onOpen={setDetail} industry={userProfile?.industry || 'general'} />}
         {tab==='ukoly' && <UkolyView leads={leads} onLeadChange={onLeadChange} teamMembers={teamMembers} />}
+        {tab==='kalendar' && <KalendarView leads={leads} teamMembers={teamMembers} userProfile={userProfile} session={session} />}
         {tab==='strategie' && <StrategickyPlan industry={userProfile?.industry || 'general'} />}
         {tab==='pruvodce' && <PruvodceStrategii industry={userProfile?.industry || 'general'} />}
         {tab==='produkty' && <ProduktyPrehled industry={userProfile?.industry || 'general'} session={session} />}

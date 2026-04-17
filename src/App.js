@@ -2888,23 +2888,28 @@ const PruvodceStrategii = () => {
 
   useEffect(() => {
     const load = async () => {
-      const [splRes, odpRes, txtRes, komRes, ordRes] = await Promise.all([
-        supabase.from('pruvodce_splneno').select('*').eq('user_id', session?.user?.id),
-        supabase.from('strategic_answers').select('*').eq('user_id', session?.user?.id),
-        supabase.from('pruvodce_texty').select('*').eq('user_id', session?.user?.id),
-        supabase.from('pruvodce_komentare').select('*').eq('user_id', session?.user?.id).order('created_at', { ascending: true }),
-        supabase.from('pruvodce_order').select('*').eq('user_id', session?.user?.id),
-      ])
-      if (splRes.data) { const m = {}; splRes.data.forEach(r => { m[r.krok_id] = r.splneno }); setSplneno(m) }
-      if (odpRes.data) { const m = {}; odpRes.data.forEach(r => { m[r.klic] = r.odpoved }); setOdpovedi(m) }
-      if (txtRes.data) { const m = {}; txtRes.data.forEach(r => { m[r.klic] = r.hodnota }); setTexty(m) }
-      if (komRes.data) {
-        const m = {}
-        komRes.data.forEach(r => { if (!m[r.krok_id]) m[r.krok_id] = []; m[r.krok_id].push(r) })
-        setKomentar(m)
+      try {
+        const [splRes, odpRes, txtRes, komRes, ordRes] = await Promise.all([
+          supabase.from('pruvodce_splneno').select('*').eq('user_id', session?.user?.id),
+          supabase.from('strategic_answers').select('*').eq('user_id', session?.user?.id),
+          supabase.from('pruvodce_texty').select('*').eq('user_id', session?.user?.id),
+          supabase.from('pruvodce_komentare').select('*').eq('user_id', session?.user?.id).order('created_at', { ascending: true }),
+          supabase.from('pruvodce_order').select('*').eq('user_id', session?.user?.id),
+        ])
+        if (splRes.data) { const m = {}; splRes.data.forEach(r => { m[r.krok_id] = r.splneno }); setSplneno(m) }
+        if (odpRes.data) { const m = {}; odpRes.data.forEach(r => { m[r.klic] = r.odpoved }); setOdpovedi(m) }
+        if (txtRes.data) { const m = {}; txtRes.data.forEach(r => { m[r.klic] = r.hodnota }); setTexty(m) }
+        if (komRes.data) {
+          const m = {}
+          komRes.data.forEach(r => { if (!m[r.krok_id]) m[r.krok_id] = []; m[r.krok_id].push(r) })
+          setKomentar(m)
+        }
+        if (ordRes.data) { const m = {}; ordRes.data.forEach(r => { m[r.krok_id] = r.pozice }); setKrokOrder(m) }
+      } catch(e) {
+        console.error('Průvodce load error:', e)
+      } finally {
+        setLoading(false)
       }
-      if (ordRes.data) { const m = {}; ordRes.data.forEach(r => { m[r.krok_id] = r.pozice }); setKrokOrder(m) }
-      setLoading(false)
     }
     load()
   }, [])

@@ -386,6 +386,8 @@ const LeadDetail = ({ lead, onEdit, onClose, teamMembers: tmProps }) => {
   const [nabidka, setNabidka] = useState(lead.nabidka || '')
   const [nabidkaLoading, setNabidkaLoading] = useState(false)
   const [nabidkaSaved, setNabidkaSaved] = useState(false)
+  const [coachAnalyza, setCoachAnalyza] = useState(null)
+  const [coachLoading, setCoachLoading] = useState(false)
 
   const generateNabidka = async () => {
     if (!lead.firma) return alert('Lead musí mít název firmy.')
@@ -525,6 +527,27 @@ PRAVIDLA: Piš česky. Dopis musí být HOTOVÝ k odeslání — žádné [závo
     setSending(false)
   }
 
+  const analyzeCallWithCoach = async (callNotes) => {
+    setCoachLoading(true)
+    try {
+      const allCalls = comments.filter(c => c.typ === 'call').map(c => c.text).join('\n---\n')
+      const prompt = 'Jsi AI Sales Coach. Analyzuj call zaznam.\n\nFIRMA: ' + lead.firma + '\nKONTAKT: ' + (lead.osoba||'') + ' (' + (lead.role||'') + ')\nPRODUKT: ' + (lead.produkt||'') + '\nSTAV: ' + (lead.stav||'') + '\n\nZAZNAM Z CALLU:\n' + callNotes + '\n\nPREDCHOZI CALLY:\n' + (allCalls||'Zadne') + '\n\nOdpovez POUZE ve formatu JSON bez markdown bloku:\n{\n  "skore": <cislo 0-100>,\n  "skore_duvod": "<1-2 vety proc toto skore>",\n  "signaly_zajem": ["<pozitivni signal 1>"],\n  "signaly_riziko": ["<riziko 1>"],\n  "next_step": "<konkretni doporucena akce>",\n  "next_step_termin": "<do kdy>",\n  "klic_insight": "<nejdulezitejsi vec z callu — 1 veta>"\n}'
+      const res = await fetch('/api/claude', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 800, messages: [{ role: 'user', content: prompt }] })
+      })
+      const data = await res.json()
+      const text = data.content?.[0]?.text || ''
+      const clean = text.replace(/```json|```/g, '').trim()
+      const analyza = JSON.parse(clean)
+      setCoachAnalyza(analyza)
+      const novaProb = analyza.skore >= 70 ? 'Vysoka (70-100 %)' : analyza.skore >= 40 ? 'Stredni (30-70 %)' : 'Nizka (0-30 %)'
+      await supabase.from('leads').update({ prob: novaProb }).eq('id', lead.id)
+    } catch(e) { console.error('Coach error:', e) }
+    setCoachLoading(false)
+  }
+
   const saveCall = async () => {
     if (!callText.trim()) return
     setSavingCall(true)
@@ -537,11 +560,13 @@ PRAVIDLA: Piš česky. Dopis musí být HOTOVÝ k odeslání — žádné [závo
     }
     await supabase.from('comments').insert([{ ...callEntry, user_id: session?.user?.id }])
     await slackKomentar(lead.firma, callAutor, '📞 Call ' + callDatum + ': ' + callText.trim().slice(0,100))
+    const savedText = callText.trim()
     setCallText('')
     setCallDatum(new Date().toISOString().slice(0,10))
     setShowCallForm(false)
     setSavingCall(false)
     await fetchComments()
+    analyzeCallWithCoach(savedText)
   }
 
   const deleteComment = async (id) => {
@@ -824,6 +849,77 @@ PRAVIDLA: Piš česky. Dopis musí být HOTOVÝ k odeslání — žádné [závo
             </div>
           </div>
         )}
+
+          {activeTab === 'cally' && coachLoading && (
+            <div style={{background:'#EEEDFE',borderRadius:10,padding:'14px 18px',marginBottom:14,display:'flex',alignItems:'center',gap:10}}>
+              <div style={{fontSize:18}}>🤖</div>
+              <div>
+                <div style={{fontSize:13,fontWeight:500,color:'#534AB7'}}>AI Sales Coach analyzuje call...</div>
+                <div style={{fontSize:11,color:'#888'}}>Identifikuji signaly, skore a next step</div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'cally' && coachAnalyza && !coachLoading && (
+            <div style={{background:'#fff',border:'1.5px solid #534AB7',borderRadius:12,padding:'16px 18px',marginBottom:14}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
+                <div style={{display:'flex',alignItems:'center',gap:8}}>
+                  <span style={{fontSize:18}}>🤖</span>
+                  <span style={{fontSize:13,fontWeight:600,color:'#534AB7'}}>AI Sales Coach — Analýza callu</span>
+                </div>
+                <button onClick={() => setCoachAnalyza(null)} style={{background:'none',border:'none',color:'#ccc',cursor:'pointer',fontSize:16}}>×</button>
+              </div>
+
+              <div style={{display:'flex',gap:12,marginBottom:14,alignItems:'center'}}>
+                <div style={{textAlign:'center'}}>
+                  <div style={{
+                    width:56,height:56,borderRadius:'50%',
+                    background: coachAnalyza.skore >= 70 ? '#EAF3DE' : coachAnalyza.skore >= 40 ? '#FAEEDA' : '#FCEBEB',
+                    color: coachAnalyza.skore >= 70 ? '#27500A' : coachAnalyza.skore >= 40 ? '#854F0B' : '#791F1F',
+                    display:'flex',alignItems:'center',justifyContent:'center',
+                    fontSize:18,fontWeight:700,border:'2px solid currentColor'
+                  }}>{coachAnalyza.skore}</div>
+                  <div style={{fontSize:10,color:'#888',marginTop:4}}>Skóre leadu</div>
+                </div>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:12,color:'#555',lineHeight:1.6}}>{coachAnalyza.skore_duvod}</div>
+                </div>
+              </div>
+
+              {coachAnalyza.klic_insight && (
+                <div style={{background:'#FAEEDA',borderRadius:8,padding:'8px 12px',marginBottom:10,fontSize:12,color:'#854F0B'}}>
+                  <strong>💡 Klíčový insight:</strong> {coachAnalyza.klic_insight}
+                </div>
+              )}
+
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:12}}>
+                {coachAnalyza.signaly_zajem?.length > 0 && (
+                  <div>
+                    <div style={{fontSize:11,fontWeight:600,color:'#27500A',marginBottom:4}}>✅ Pozitivní signály</div>
+                    {coachAnalyza.signaly_zajem.map((s,i) => (
+                      <div key={i} style={{fontSize:11,color:'#555',padding:'3px 0',borderBottom:'0.5px solid #f0f0f0'}}>{s}</div>
+                    ))}
+                  </div>
+                )}
+                {coachAnalyza.signaly_riziko?.length > 0 && (
+                  <div>
+                    <div style={{fontSize:11,fontWeight:600,color:'#791F1F',marginBottom:4}}>⚠️ Rizika / Námitky</div>
+                    {coachAnalyza.signaly_riziko.map((s,i) => (
+                      <div key={i} style={{fontSize:11,color:'#555',padding:'3px 0',borderBottom:'0.5px solid #f0f0f0'}}>{s}</div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div style={{background:'#E1F5EE',borderRadius:8,padding:'10px 14px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                <div>
+                  <div style={{fontSize:11,fontWeight:600,color:'#0F6E56',marginBottom:2}}>🚀 Doporučený next step</div>
+                  <div style={{fontSize:12,color:'#333'}}>{coachAnalyza.next_step}</div>
+                  {coachAnalyza.next_step_termin && <div style={{fontSize:11,color:'#0F6E56',marginTop:2}}>⏱ {coachAnalyza.next_step_termin}</div>}
+                </div>
+              </div>
+            </div>
+          )}
 
           {activeTab === 'nabidka' && (
             <div style={{padding:'12px 0 20px'}}>

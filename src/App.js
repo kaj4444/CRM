@@ -110,7 +110,7 @@ const EMPTY_LEAD = {
   firma:'', osoba:'', role:'CEO', segment:'Přímý klient',
   email:'', telefon:'', odvetvi:'Energetika', zdroj:'Vlastní síť',
   produkt:'Review NIS2', stav:'Lead', cena:'', prob:'Nízká (0–30 %)',
-  vede:'Karel', followup:'', d1:'', namitka:'', poznamky:'', stitky:''
+  vede:'', followup:'', d1:'', namitka:'', poznamky:'', stitky:''
 }
 
 const STITKY_OPTIONS = ['VIP','Urgentní','Čeká na smlouvu','Warm','Cold','Referral','Enterprise','Priorita']
@@ -129,7 +129,7 @@ const INDUSTRY_CONFIG = {
       firma:'', osoba:'', role:'CEO', segment:'Přímý klient',
       email:'', telefon:'', odvetvi:'Energetika', zdroj:'Vlastní síť',
       produkt:'Review NIS2', stav:'Lead', cena:'', prob:'Nízká (0–30 %)',
-      vede:'Karel', followup:'', d1:'', namitka:'', poznamky:'', stitky:'', web:''
+      vede:'', followup:'', d1:'', namitka:'', poznamky:'', stitky:'', web:''
     },
     firmLabel: 'Název firmy',
     klientLabel: 'Kontaktní osoba',
@@ -150,7 +150,7 @@ const INDUSTRY_CONFIG = {
       firma:'', osoba:'', role:'Kupující', segment:'Přímý klient',
       email:'', telefon:'', odvetvi:'Byt', zdroj:'Vlastní síť',
       produkt:'Prodej nemovitosti', stav:'Poptávka', cena:'', prob:'Nízká (0–30 %)',
-      vede:'Karel', followup:'', d1:'', namitka:'', poznamky:'', stitky:'', web:'',
+      vede:'', followup:'', d1:'', namitka:'', poznamky:'', stitky:'', web:'',
       lokalita:'', dispozice:'', plocha:''
     },
     firmLabel: 'Název nemovitosti / adresa',
@@ -172,7 +172,7 @@ const INDUSTRY_CONFIG = {
       firma:'', osoba:'', role:'CEO / Majitel', segment:'Přímý klient',
       email:'', telefon:'', odvetvi:'Management / strategie', zdroj:'Vlastní síť',
       produkt:'Strategický audit', stav:'Poptávka', cena:'', prob:'Nízká (0–30 %)',
-      vede:'Karel', followup:'', d1:'', namitka:'', poznamky:'', stitky:'', web:''
+      vede:'', followup:'', d1:'', namitka:'', poznamky:'', stitky:'', web:''
     },
     firmLabel: 'Název klienta / firmy',
     klientLabel: 'Kontaktní osoba (jméno)',
@@ -900,9 +900,11 @@ Piš česky. Buď konkrétní a personální — vyhni se generickým frázím. 
 }
 
 // ─── MODAL FORMULÁŘ ───────────────────────────────────────────────────────────
-const LeadModal = ({ lead, onSave, onDelete, onClose, industry }) => {
+const LeadModal = ({ lead, onSave, onDelete, onClose, industry, teamMembers }) => {
   const cfg = getIndustryCfg(industry)
-  const [form, setForm] = useState(lead || cfg.emptyLead)
+  const vedeOptions = teamMembers && teamMembers.length > 0 ? teamMembers : ['Karel','Radim','Aleš']
+  const defaultVede = teamMembers && teamMembers.length > 0 ? teamMembers[0] : ''
+  const [form, setForm] = useState(lead || { ...cfg.emptyLead, vede: lead?.vede || defaultVede })
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
   const fi = (k) => ({ value: form[k] || '', onChange: e => set(k, e.target.value) })
 
@@ -955,7 +957,7 @@ const LeadModal = ({ lead, onSave, onDelete, onClose, industry }) => {
           </div>
           <div className="form-grid">
             <div className="form-row"><label>Kdo vede obchod</label>
-              <select {...fi('vede')}>{['Karel','Radim','Aleš'].map(o=><option key={o}>{o}</option>)}</select>
+              <select {...fi('vede')}>{vedeOptions.map(o=><option key={o}>{o}</option>)}</select>
             </div>
             <div className="form-row"><label>Datum next follow-upu</label><input type="date" {...fi('followup')} /></div>
           </div>
@@ -4387,6 +4389,18 @@ export default function App() {
   const [leads, setLeads] = useState([])
   const [loading, setLoading] = useState(false)
   const [tab, setTab] = useState('dashboard')
+  const [teamMembers, setTeamMembers] = useState([])
+  const [showTeamModal, setShowTeamModal] = useState(false)
+  const [newMemberName, setNewMemberName] = useState('')
+
+  // Load team members from Supabase profiles.team_members
+  const loadTeamMembers = async (profile) => {
+    if (!profile) return
+    const myName = profile.full_name || profile.email || 'Já'
+    const saved = profile.team_members ? profile.team_members.split(',').map(s => s.trim()).filter(Boolean) : []
+    const all = [myName, ...saved.filter(n => n !== myName)]
+    setTeamMembers(all)
+  }
   const [drawerOpen, setDrawerOpen] = useState(false)
   const DEFAULT_NAV = ['dashboard','kanban','table','followup','ukoly','multiplikatori','discovery','email','dokumenty','strategie','produkty','pruvodce']
   const [navOrder, setNavOrder] = useState(() => {
@@ -4483,6 +4497,7 @@ export default function App() {
       const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single()
       if (data) {
         setUserProfile(data)
+        loadTeamMembers(data)
         // Zkontrolovat paywall
         if (!isTrialActive(data)) setShowPaywall(true)
       } else {
@@ -4497,7 +4512,7 @@ export default function App() {
           trial_ends_at: trialEnd.toISOString(),
           subscription_status: 'trial'
         }]).select().single()
-        if (newProfile) setUserProfile(newProfile)
+        if (newProfile) { setUserProfile(newProfile); loadTeamMembers(newProfile) }
       }
     }
     loadProfile()
@@ -4894,12 +4909,71 @@ export default function App() {
         })}
         <div className="sidebar-user">
           <div>{userProfile?.full_name || session?.user?.email || "Uživatel"}</div>
-          <button className="logout-btn" style={{marginBottom:6}} onClick={async () => {
+          <button className="logout-btn" style={{marginBottom:4}} onClick={() => setShowTeamModal(true)}>👥 Správa týmu</button>
+          <button className="logout-btn" style={{marginBottom:4}} onClick={async () => {
             const ok = await requestPushPermission()
             alert(ok ? '✓ Push notifikace povoleny!' : 'Notifikace nejsou povoleny — povol je v nastavení prohlížeče.')
           }}>🔔 Notifikace</button>
           <button className="logout-btn" onClick={() => doLogout()}>Odhlásit se</button>
         </div>
+
+        {showTeamModal && (
+          <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowTeamModal(false)}>
+            <div className="modal" style={{maxWidth:400}}>
+              <div className="modal-head">
+                <h2>👥 Správa týmu</h2>
+                <button className="close-btn" onClick={() => setShowTeamModal(false)}>×</button>
+              </div>
+              <div className="modal-body">
+                <div style={{fontSize:13,color:'#888',marginBottom:12}}>
+                  Tato jména se zobrazí v poli "Kdo vede obchod". Vaše jméno je vždy první.
+                </div>
+                <div style={{marginBottom:16}}>
+                  {teamMembers.map((m, i) => (
+                    <div key={m} style={{display:'flex',alignItems:'center',gap:8,marginBottom:6,padding:'8px 12px',background:'#f8f8f6',borderRadius:8,border:'0.5px solid #e0e0e0'}}>
+                      <span style={{flex:1,fontSize:13,fontWeight: i===0 ? 500 : 400}}>{m}{i===0 ? ' (vy)' : ''}</span>
+                      {i > 0 && (
+                        <button onClick={async () => {
+                          const newMembers = teamMembers.filter((_,idx) => idx !== i)
+                          setTeamMembers(newMembers)
+                          const myName = teamMembers[0]
+                          const others = newMembers.slice(1).join(',')
+                          await supabase.from('profiles').update({ team_members: others }).eq('id', session.user.id)
+                        }} style={{background:'none',border:'none',color:'#ccc',cursor:'pointer',fontSize:16,padding:'0 4px'}}>×</button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <div style={{display:'flex',gap:8}}>
+                  <input
+                    value={newMemberName}
+                    onChange={e => setNewMemberName(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && newMemberName.trim() && (async () => {
+                      const name = newMemberName.trim()
+                      if (teamMembers.includes(name)) return
+                      const newMembers = [...teamMembers, name]
+                      setTeamMembers(newMembers)
+                      setNewMemberName('')
+                      const others = newMembers.slice(1).join(',')
+                      await supabase.from('profiles').update({ team_members: others }).eq('id', session.user.id)
+                    })()}
+                    placeholder="Jméno nového člena..."
+                    style={{flex:1,padding:'8px 12px',borderRadius:8,border:'0.5px solid #ddd',fontSize:13,fontFamily:'inherit'}}
+                  />
+                  <button className="btn accent" onClick={async () => {
+                    const name = newMemberName.trim()
+                    if (!name || teamMembers.includes(name)) return
+                    const newMembers = [...teamMembers, name]
+                    setTeamMembers(newMembers)
+                    setNewMemberName('')
+                    const others = newMembers.slice(1).join(',')
+                    await supabase.from('profiles').update({ team_members: others }).eq('id', session.user.id)
+                  }}>Přidat</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="main">
@@ -4979,6 +5053,7 @@ export default function App() {
           onDelete={deleteLead}
           onClose={() => setModal(null)}
           industry={userProfile?.industry || 'general'}
+          teamMembers={teamMembers}
         />
       )}
     </div>

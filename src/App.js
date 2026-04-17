@@ -3904,7 +3904,7 @@ const StrategickyPlan = ({ industry }) => {
         <div>
           <div style={{fontSize:13,color:'#888'}}>Zodpovězeno {zodpovezeno} z {celkemOtazek} otázek · {saving ? 'Ukládám...' : 'Automatické ukládání'}</div>
         </div>
-        <div style={{fontSize:12,color:'#aaa'}}>Odpovědi se ukládají pro všechny — Radim, Aleš i Karel</div>
+        <div style={{fontSize:12,color:'#aaa'}}>Odpovědi se ukládají automaticky — sdíleno s celým týmem</div>
       </div>
 
       <div style={{display:'flex',gap:8,marginBottom:20,flexWrap:'wrap'}}>
@@ -3938,7 +3938,7 @@ const StrategickyPlan = ({ industry }) => {
           </div>
 
           <div style={{padding:'20px 24px'}}>
-            <div style={{fontSize:13,fontWeight:500,color:'#888',marginBottom:16}}>Otázky pro Radima a Aleše — klikněte a zapište odpovědi:</div>
+            <div style={{fontSize:13,fontWeight:500,color:'#888',marginBottom:16}}>Otázky — klikněte a zapište odpovědi:</div>
             {blok.otazky.map((otazka, i) => {
               const klic = blok.id + '_' + i
               const val = odpovedi[klic] || ''
@@ -5468,7 +5468,7 @@ export default function App() {
       <div className="main">
         <div className="page-header">
           <h1>{{dashboard:'Dashboard',kanban:'Pipeline',table:'Všechny leady',followup:'Follow-up dnes',ukoly:'Úkoly',multiplikatori:'Multiplikátoři',discovery:'Discovery call script',email:'Email šablony',dokumenty:'Dokumenty',strategie:'Strategický plán prodeje',produkty:'Portfolio produktů',pruvodce:'Průvodce strategií'}[tab]}</h1>
-          <p>{{dashboard:'Přehled všeho na jednom místě — přizpůsobitelný',kanban:'Vizuální přehled obchodů podle fáze',table:'Kompletní seznam s filtry',followup:'Leady které čekají na tvůj kontakt',ukoly:'Propojené úkoly — splnění automaticky aktualizuje lead',multiplikatori:'Partneři a zprostředkovatelé',discovery:'Průvodce pro 30minutový prodejní hovor',email:'Šablony připravené k odeslání',dokumenty:'Factsheets, nabídky a další PDF',strategie:'Brainstorming pro čtvrteční meeting — odpovědi se ukládají pro všechny',produkty:'Přehled produktů riscare s popisky a cenami',pruvodce:'Krok za krokem — co dělat a kdy. Sdílené pro celý tým.'}[tab]}</p>
+          <p>{{dashboard:'Přehled všeho na jednom místě — přizpůsobitelný',kanban:'Vizuální přehled obchodů podle fáze',table:'Kompletní seznam s filtry',followup:'Leady které čekají na tvůj kontakt',ukoly:'Propojené úkoly — splnění automaticky aktualizuje lead',multiplikatori:'Partneři a zprostředkovatelé',discovery:'Průvodce pro 30minutový prodejní hovor',email:'Šablony připravené k odeslání',dokumenty:'Factsheets, nabídky a další PDF',strategie:'Strategický brainstorming — odpovědi se ukládají automaticky',produkty:'Přehled produktů a služeb s popisky a cenami',pruvodce:'Krok za krokem — co dělat a kdy. Sdílené pro celý tým.'}[tab]}</p>
         </div>
 
         {['kanban','table','followup','multiplikatori'].includes(tab) && (

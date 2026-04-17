@@ -3253,6 +3253,7 @@ const ProduktyPrehled = ({ industry }) => {
         ))}
       </div>
 
+      {industry === 'cybersecurity' && (
       <div style={{marginTop:24,background:'#fff',border:'0.5px solid #e8e8e8',borderRadius:12,overflow:'hidden'}}>
         <div style={{padding:'14px 24px',borderBottom:'0.5px solid #f0f0f0',fontWeight:500,fontSize:15}}>Upsell mapa</div>
         <div style={{padding:'20px 24px',overflowX:'auto'}}>
@@ -3276,6 +3277,7 @@ const ProduktyPrehled = ({ industry }) => {
           <div style={{marginTop:12,fontSize:12,color:'#aaa'}}>Stejná logika platí pro DORA: Check DORA → Lorenc DORA → Program DORA</div>
         </div>
       </div>
+      )}
     </div>
   )
 }

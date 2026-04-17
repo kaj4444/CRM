@@ -3253,31 +3253,84 @@ const ProduktyPrehled = ({ industry }) => {
         ))}
       </div>
 
-      {industry === 'cybersecurity' && (
-      <div style={{marginTop:24,background:'#fff',border:'0.5px solid #e8e8e8',borderRadius:12,overflow:'hidden'}}>
-        <div style={{padding:'14px 24px',borderBottom:'0.5px solid #f0f0f0',fontWeight:500,fontSize:15}}>Upsell mapa</div>
-        <div style={{padding:'20px 24px',overflowX:'auto'}}>
-          <div style={{display:'flex',gap:0,alignItems:'stretch',minWidth:600}}>
-            {[
-              { label:'riscare Review NIS2', sub:'36 000 Kč', bg:'#E1F5EE', color:'#0F6E56', arrow:true },
-              { label:'Akční plán', sub:'výstup', bg:'#f5f5f3', color:'#888', arrow:true },
-              { label:'Lorenc NIS2', sub:'mentoring', bg:'#FAEEDA', color:'#854F0B', arrow:false },
-              { label:'Program NIS2', sub:'all-inclusive', bg:'#EEEDFE', color:'#534AB7', arrow:false },
-            ].map((item, i) => (
-              <div key={i} style={{display:'flex',alignItems:'center',gap:0}}>
-                <div style={{background:item.bg,borderRadius:8,padding:'12px 16px',textAlign:'center',minWidth:130}}>
-                  <div style={{fontSize:12,fontWeight:500,color:item.color}}>{item.label}</div>
-                  <div style={{fontSize:11,color:item.color,opacity:0.7,marginTop:2}}>{item.sub}</div>
+      {(industry === 'cybersecurity' || industry === 'real-estate' || industry === 'general' || !industry) && (() => {
+        const upsellData = {
+          cybersecurity: {
+            title: 'Upsell mapa — NIS2 & DORA',
+            note: 'Stejná logika platí pro DORA: Check DORA → Lorenc DORA → Program DORA',
+            rows: [[
+              { label:'riscare Review NIS2', sub:'36 000 Kč · vstupní analýza', bg:'#E1F5EE', color:'#0F6E56', type:'arrow' },
+              { label:'Akční plán', sub:'výstup do 2 týdnů', bg:'#f5f5f3', color:'#888', type:'arrow' },
+              { label:'Lorenc NIS2', sub:'mentoring · implementace', bg:'#FAEEDA', color:'#854F0B', type:'slash' },
+              { label:'Program NIS2', sub:'all-inclusive', bg:'#EEEDFE', color:'#534AB7', type:'end' },
+            ]]
+          },
+          'real-estate': {
+            title: 'Upsell mapa — Realitní cesta klienta',
+            note: 'Každá transakce je příležitost k dalšímu obchodu — průměrný klient nakupuje 2–3 nemovitosti za život.',
+            rows: [
+              [
+                { label:'Bezplatné ocenění', sub:'vstupní hák · zdarma', bg:'#E1F5EE', color:'#0F6E56', type:'arrow' },
+                { label:'Zprostředkování', sub:'provize 3–5 % z ceny', bg:'#EEEDFE', color:'#534AB7', type:'arrow' },
+                { label:'Profesionální marketing', sub:'foto, video, staging', bg:'#FAEEDA', color:'#854F0B', type:'arrow' },
+                { label:'Právní & admin servis', sub:'smlouvy, úschova', bg:'#E6F1FB', color:'#185FA5', type:'arrow' },
+                { label:'Předání & follow-up', sub:'klíče + referral žádost', bg:'#EAF3DE', color:'#27500A', type:'end' },
+              ],
+              [
+                { label:'Cross-sell po transakci', sub:'', bg:'#fff', color:'#aaa', type:'label' },
+                { label:'Správa nemovitosti', sub:'pasivní příjem klienta', bg:'#FDF3E7', color:'#633806', type:'arrow' },
+                { label:'Investiční poradenství', sub:'další nemovitost', bg:'#FAEEDA', color:'#854F0B', type:'arrow' },
+                { label:'Pronájem', sub:'opakující se spolupráce', bg:'#E1F5EE', color:'#0F6E56', type:'end' },
+              ]
+            ]
+          },
+          general: {
+            title: 'Upsell mapa — Consulting cesta klienta',
+            note: 'Zlaté pravidlo: jednorázový projekt → důvěra → retainer. Průměrný consulting klient na retaineru = 12× vyšší LTV než jednorázový projekt.',
+            rows: [
+              [
+                { label:'Diagnostika / audit', sub:'vstup · 60–150 tis. Kč', bg:'#E1F5EE', color:'#0F6E56', type:'arrow' },
+                { label:'Workshop / výstup', sub:'doporučení + prioritizace', bg:'#f5f5f3', color:'#888', type:'arrow' },
+                { label:'Implementační projekt', sub:'3–6 měsíců · 150–500 tis.', bg:'#EEEDFE', color:'#534AB7', type:'arrow' },
+                { label:'Retainer', sub:'měsíční partner · 20–50 tis./m', bg:'#FAEEDA', color:'#854F0B', type:'end' },
+              ],
+              [
+                { label:'Paralelní cross-sell', sub:'', bg:'#fff', color:'#aaa', type:'label' },
+                { label:'Leadership program', sub:'tým klienta · 120+ tis.', bg:'#E6F1FB', color:'#185FA5', type:'arrow' },
+                { label:'Mentoring managementu', sub:'CEO/HR · 15 tis./m', bg:'#EAF3DE', color:'#27500A', type:'arrow' },
+                { label:'Referral na partnery', sub:'síť → nový klient', bg:'#FCEBEB', color:'#791F1F', type:'end' },
+              ]
+            ]
+          }
+        }
+        const d = upsellData[industry] || upsellData['general']
+        const renderItem = (item, i, arr) => (
+          <div key={i} style={{display:'flex',alignItems:'center',gap:0}}>
+            {item.type === 'label'
+              ? <div style={{fontSize:11,color:'#bbb',fontStyle:'italic',minWidth:110,paddingRight:8}}>{item.label}</div>
+              : <div style={{background:item.bg,borderRadius:8,padding:'10px 14px',textAlign:'center',minWidth:120,border:'0.5px solid ' + item.color + '22'}}>
+                  <div style={{fontSize:11,fontWeight:600,color:item.color}}>{item.label}</div>
+                  {item.sub && <div style={{fontSize:10,color:item.color,opacity:0.7,marginTop:2}}>{item.sub}</div>}
                 </div>
-                {item.arrow && <div style={{fontSize:20,color:'#ccc',padding:'0 8px'}}>→</div>}
-                {!item.arrow && i===2 && <div style={{fontSize:20,color:'#ccc',padding:'0 8px'}}>/</div>}
-              </div>
-            ))}
+            }
+            {item.type === 'arrow' && <div style={{fontSize:18,color:'#ccc',padding:'0 6px'}}>→</div>}
+            {item.type === 'slash' && <div style={{fontSize:18,color:'#ccc',padding:'0 6px'}}>/</div>}
           </div>
-          <div style={{marginTop:12,fontSize:12,color:'#aaa'}}>Stejná logika platí pro DORA: Check DORA → Lorenc DORA → Program DORA</div>
-        </div>
-      </div>
-      )}
+        )
+        return (
+          <div style={{marginTop:24,background:'#fff',border:'0.5px solid #e8e8e8',borderRadius:12,overflow:'hidden'}}>
+            <div style={{padding:'14px 24px',borderBottom:'0.5px solid #f0f0f0',fontWeight:500,fontSize:15}}>{d.title}</div>
+            <div style={{padding:'20px 24px',overflowX:'auto'}}>
+              {d.rows.map((row, ri) => (
+                <div key={ri} style={{display:'flex',gap:0,alignItems:'center',minWidth:500,marginBottom: ri < d.rows.length-1 ? 12 : 0}}>
+                  {row.map(renderItem)}
+                </div>
+              ))}
+              <div style={{marginTop:14,fontSize:11,color:'#aaa',lineHeight:1.5}}>{d.note}</div>
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }

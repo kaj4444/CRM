@@ -4688,9 +4688,10 @@ const UKOL_STAV_LABEL = { todo: 'K udělání', in_progress: 'Probíhá', hotovo
 const UKOL_STAV_COLOR = { todo: '#185FA5', in_progress: '#854F0B', hotovo: '#27500A' }
 const UKOL_STAV_BG = { todo: '#E6F1FB', in_progress: '#FAEEDA', hotovo: '#EAF3DE' }
 
-const UkolModal = ({ ukol, leads, onSave, onClose }) => {
+const UkolModal = ({ ukol, leads, onSave, onClose, teamMembers }) => {
+  const activeTeam = (teamMembers && teamMembers.length > 0) ? teamMembers : ['Karel','Radim','Aleš']
   const [form, setForm] = useState(ukol || {
-    nazev: '', popis: '', kdo: 'Karel', do_kdy: '', stav: 'todo',
+    nazev: '', popis: '', kdo: activeTeam[0] || 'Karel', do_kdy: '', stav: 'todo',
     lead_id: '', novy_stav_leadu: '', zdroj: '', zdroj_id: ''
   })
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
@@ -4712,7 +4713,7 @@ const UkolModal = ({ ukol, leads, onSave, onClose }) => {
           <div className="form-grid">
             <div className="form-row"><label>Kdo to dělá</label>
               <select value={form.kdo} onChange={e=>set('kdo',e.target.value)}>
-                {(['Karel','Radim','Aleš']).map(o=><option key={o}>{o}</option>)}
+                {activeTeam.map(o=><option key={o}>{o}</option>)}
               </select>
             </div>
             <div className="form-row"><label>Do kdy</label>
@@ -4987,6 +4988,7 @@ const UkolyView = ({ leads, onLeadChange, teamMembers }) => {
           leads={leads}
           onSave={saveUkol}
           onClose={() => setModal(null)}
+          teamMembers={teamMembers}
         />
       )}
     </div>

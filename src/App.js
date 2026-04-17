@@ -2657,6 +2657,428 @@ const PdfDocuments = () => {
 
 
 // ─── PRŮVODCE STRATEGIÍ ──────────────────────────────────────────────────────
+// ─── PRŮVODCE STRATEGIÍ — INDUSTRY DATA ──────────────────────────────────────
+
+const MESICE_RE = [
+  { id: 'm1', label: 'Měsíc 1', sub: 'Průzkum a první mandáty', barva: '#0F6E56', bg: '#E1F5EE' },
+  { id: 'm2', label: 'Měsíc 2–3', sub: 'Systém a pipeline', barva: '#534AB7', bg: '#EEEDFE' },
+  { id: 'm3', label: 'Měsíc 4–6', sub: 'Růst a referraly', barva: '#185FA5', bg: '#E6F1FB' },
+]
+
+const KROKY_RE = [
+  { id: 're1', mesic: 'm1', priorita: 'kritická',
+    nazev: 'Zmapuj existující kontakty — potenciální prodávající i kupující',
+    proc: 'Většina obchodů makléřů pochází z vlastní sítě. Nezačínáš od nuly — zmapuj kdo ve tvé síti uvažuje o prodeji nebo koupi.',
+    jak: 'Projdi LinkedIn, telefon, e-mail. Pro každý kontakt: zájem o prodej/koupi? Časový horizont? Lokalita? Přidej do CRM jako lead.',
+    cil: 'Min. 20 kontaktů v CRM, každý s kategorií (prodávající/kupující/investor) a follow-up datem.',
+    tyden: 1,
+  },
+  { id: 're2', mesic: 'm1', priorita: 'kritická',
+    nazev: 'Nastav CRM a pipeline',
+    proc: 'Bez evidence kontaktů ztrácíš obchody. Pipeline = přehled kde je každý klient v procesu.',
+    jak: 'Přidej prvních 20 kontaktů. Pipeline: Poptávka → Prohlídka → Nabídka → Rezervace → Podpis. Každý lead má follow-up datum.',
+    cil: 'CRM s min. 20 leady, každý správně zařazený v pipeline.',
+    tyden: 1,
+  },
+  { id: 're3', mesic: 'm1', priorita: 'kritická',
+    nazev: 'Prvních 10 úvodních schůzek s potenciálními klienty',
+    proc: 'Každá schůzka je informace o trhu a příležitost k mandátu. Použi script schůzky v appce.',
+    jak: 'Cíl: 3-5 schůzek týdně. Po každé schůzce záznam do CRM do 30 minut. Zaměř se na prodávající — mandát = jistota provize.',
+    cil: '10 schůzek, záznamy v CRM, min. 2-3 podepsané mandáty.',
+    tyden: 2,
+  },
+  { id: 're4', mesic: 'm1', priorita: 'vysoká',
+    nazev: 'Připrav profesionální prezentaci pro prodávající',
+    proc: 'Prodávající vybírají makléře. Profesionální prezentace = důvod proč ty a ne konkurence.',
+    jak: 'Prezentace: tvé výsledky, marketingový plán pro jejich nemovitost, realistické ocenění, timeline. Max 10 slajdů nebo 1 stránka.',
+    cil: 'Hotová prezentace použitelná na každé schůzce s prodávajícím.',
+    tyden: 2,
+  },
+  { id: 're5', mesic: 'm1', priorita: 'vysoká',
+    nazev: 'Bezplatné ocenění jako vstupní hák — 5 nemovitostí',
+    proc: 'Bezplatné ocenění je nejlepší způsob jak dostat nohu do dveří. 80% majitelů kteří dostanou profesionální ocenění nakonec prodávají s makléřem.',
+    jak: 'Nabídni bezplatné ocenění ve svém okolí. Inzeruj na sociálních sítích. Po ocenění: follow-up s marketingovým plánem.',
+    cil: '5 provedených ocenění, min. 1 podepsaný mandát z nich.',
+    tyden: '3-4',
+  },
+  { id: 're6', mesic: 'm1', priorita: 'střední',
+    nazev: 'Identifikuj 3 referral partnery',
+    proc: 'Hypoteční poradci, právníci, daňoví poradci — každý zná lidi kteří kupují nebo prodávají. Jeden partner = přístup k desítkám klientů.',
+    jak: 'Navažu kontakt s hypotečním poradcem, právníkem a stavebním firmou. Navrhni reciprocitu — doporučuj je svým klientům výměnou.',
+    cil: '3 aktivní referral partnerství s jasným modelem spolupráce.',
+    tyden: '3-4',
+  },
+  { id: 're7', mesic: 'm1', priorita: 'kritická',
+    nazev: 'Uzavři první mandát a první prodej',
+    proc: 'Jeden úspěšný prodej = reference, důvěra a motivace. Vše ostatní je teorie.',
+    jak: 'Z prvních schůzek vyber nejslibnějšího prodávajícího. Follow-up do 24h po schůzce. Nabídni extra servis: profesionální foto zdarma k prvnímu mandátu.',
+    cil: 'Min. 1 podepsaný exkluzivní mandát, nemovitost aktivně inzerovaná.',
+    tyden: '3-4',
+  },
+  { id: 're8', mesic: 'm2', priorita: 'kritická',
+    nazev: 'Spusť systematický marketing nemovitostí',
+    proc: 'Profesionální prezentace nemovitosti = rychlejší prodej, vyšší cena, spokojený klient = reference.',
+    jak: 'Pro každou nemovitost: profesionální fotografie, video/3D tour, popis cílící na správného kupce, inzerce na Sreality + Facebook + Instagram.',
+    cil: 'Každá inzerovaná nemovitost má profesionální foto a video, průměrná doba prodeje pod 60 dní.',
+    tyden: '5-8',
+  },
+  { id: 're9', mesic: 'm2', priorita: 'vysoká',
+    nazev: 'Nastav emailový newsletter pro databázi kupujících',
+    proc: 'Kupující kteří teď nekupují, koupí za 6-12 měsíců. Pravidelný newsletter = zůstaneš v jejich hlavě.',
+    jak: 'Měsíční newsletter: nové nemovitosti, trend cen v lokalitě, tipy pro kupující. Segmentuj: kupující bytu, domu, investoři.',
+    cil: 'Databáze 100+ kontaktů, newsletter odesílaný měsíčně.',
+    tyden: '5-8',
+  },
+  { id: 're10', mesic: 'm2', priorita: 'vysoká',
+    nazev: 'Aktivní social media strategie — osobní brand makléře',
+    proc: 'Lidé kupují od lidí. Osobní brand na sociálních sítích generuje inbound leady bez investice do reklamy.',
+    jak: '3 posty týdně: prodané nemovitosti (se souhlasem), tipy pro kupující/prodávající, zákulisí práce. Instagram + Facebook. Reels mají největší dosah.',
+    cil: 'Min. 500 followerů, 3 inbound poptávky měsíčně ze sociálních sítí.',
+    tyden: '5-12',
+  },
+  { id: 're11', mesic: 'm2', priorita: 'střední',
+    nazev: 'Uzavři 2-3 prodeje za měsíc',
+    proc: 'Měsíc 2-3 je test jestli máš fungující systém nebo jen štěstí z měsíce 1.',
+    jak: 'Pipeline management: každý lead má follow-up datum. Každé pondělí: Follow-up dnes v appce. Žádný kupující nezůstane bez kontaktu déle než 7 dní.',
+    cil: '2-3 uzavřené transakce měsíčně, revenue 150 000 - 300 000 Kč provize.',
+    tyden: '5-12',
+  },
+  { id: 're12', mesic: 'm2', priorita: 'střední',
+    nazev: 'Spusť program správy nemovitostí jako cross-sell',
+    proc: 'Klient co prodal nebo koupil je nejlepší zákazník pro správu nemovitosti. Opakující se pasivní příjem pro tebe i klienta.',
+    jak: 'Po uzavření transakce: nabídni správu nemovitosti investorům nebo majitelům s více nemovitostmi. Měsíční paušál za správu.',
+    cil: 'Min. 3 nemovitosti ve správě do konce měsíce 3.',
+    tyden: '9-12',
+  },
+  { id: 're13', mesic: 'm3', priorita: 'kritická',
+    nazev: 'Referral systém — požádej každého spokojeného klienta o doporučení',
+    proc: 'Doporučení od spokojeného klienta má 90% konverzní míru. Je to nejlevnější a nejefektivnější zdroj nových obchodů.',
+    jak: 'Po každém uzavřeném prodeji: osobní poděkování + žádost o doporučení. Nabídni odměnu za úspěšné doporučení (dárkový poukaz nebo sleva na příští transakci).',
+    cil: 'Min. 30% nových klientů pochází z doporučení od měsíce 4.',
+    tyden: '13-24',
+  },
+  { id: 're14', mesic: 'm3', priorita: 'vysoká',
+    nazev: 'Vytvoř případové studie úspěšných prodejů',
+    proc: 'Příběh prodeje = nejsilnější marketingový obsah. "Prodali jsme za 15% nad trhovou cenou za 3 týdny" přesvědčí více než jakákoli reklama.',
+    jak: 'Pro každý zajímavý prodej: situace → výzva → co jsi udělal → výsledek. Se souhlasem klienta zveřejni na sociálních sítích a webu.',
+    cil: '5-10 případových studií, každá sdílená na sociálních sítích.',
+    tyden: '13-20',
+  },
+  { id: 're15', mesic: 'm3', priorita: 'vysoká',
+    nazev: 'Rozšiř na investiční poradenství',
+    proc: 'Investoři kupují opakovaně a mají vyšší transakce. Jeden investor klient = 3-10 transakcí za rok.',
+    jak: 'Nabídni bezplatnou investiční konzultaci: výnos z pronájmu, potenciál zhodnocení, správa portfolia. Zaměř se na klienty co prodali a mají volný kapitál.',
+    cil: 'Min. 3 investorské klienty se opakující se spoluprací.',
+    tyden: '13-24',
+  },
+  { id: 're16', mesic: 'm3', priorita: 'střední',
+    nazev: 'Lokální event a community strategie',
+    proc: 'Makléř = lokální expert. Přednášky a eventy budují autoritu a generují inbound leady pasivně.',
+    jak: 'Zorganizuj seminář pro prodávající: "Jak prodat byt za maximální cenu". Spolupracuj s místními podniky a komunitami. Cíl: 1 event za čtvrtletí.',
+    cil: '2 eventy do konce měsíce 6, min. 5 leadů z každého.',
+    tyden: '17-24',
+  },
+]
+
+const MESICE_CONS = [
+  { id: 'm1', label: 'Měsíc 1', sub: 'Průzkum a první zakázky', barva: '#534AB7', bg: '#EEEDFE' },
+  { id: 'm2', label: 'Měsíc 2–3', sub: 'Systém a škálování', barva: '#0F6E56', bg: '#E1F5EE' },
+  { id: 'm3', label: 'Měsíc 4–6', sub: 'Retainer a referraly', barva: '#185FA5', bg: '#E6F1FB' },
+]
+
+const KROKY_CONS = [
+  { id: 'c1', mesic: 'm1', priorita: 'kritická',
+    nazev: 'Zmapuj existující kontakty — potenciální klienti a referral partneři',
+    proc: 'Většina prvních consulting zakázek pochází z osobní sítě. Nezačínáš od nuly.',
+    jak: 'Projdi LinkedIn, telefon, e-mail. Pro každý kontakt: může potřebovat consulting? Kdy? Jaká oblast? Přidej do CRM.',
+    cil: 'Min. 20 kontaktů v CRM, každý s oblastí zájmu a follow-up datem.',
+    tyden: 1,
+  },
+  { id: 'c2', mesic: 'm1', priorita: 'kritická',
+    nazev: 'Nastav CRM a pipeline',
+    proc: 'Bez evidence kontaktů ztrácíš zakázky. Pipeline = přehled kde je každý potenciální klient.',
+    jak: 'Přidej prvních 20 kontaktů. Pipeline: Poptávka → Úvodní schůzka → Nabídka → Smlouva → Projekt. Každý lead má follow-up datum.',
+    cil: 'CRM s min. 20 leady, každý správně zařazený.',
+    tyden: 1,
+  },
+  { id: 'c3', mesic: 'm1', priorita: 'kritická',
+    nazev: 'Prvních 10 úvodních konzultačních schůzek',
+    proc: 'Každá schůzka je informace o trhu a příležitost k zakázce. Neprodáváš — diagnostikuješ.',
+    jak: 'Cíl: 3-5 schůzek týdně. Použi script schůzky v appce. Po schůzce: záznam do CRM, follow-up email do 24h.',
+    cil: '10 schůzek, záznamy v CRM, min. 2-3 vážné poptávky.',
+    tyden: 2,
+  },
+  { id: 'c4', mesic: 'm1', priorita: 'vysoká',
+    nazev: 'Připrav nabídkový template pro každou službu',
+    proc: 'Profesionální nabídka = důvěra a rychlejší rozhodnutí klienta. Bez šablony ztrácíš čas po každé schůzce.',
+    jak: 'Template pro každou hlavní službu: rozsah, metodika, výstupy, cena, timeline. Max 2 strany. Použi šablony emailů v appce.',
+    cil: 'Hotové nabídkové šablony pro min. 3 hlavní služby.',
+    tyden: 2,
+  },
+  { id: 'c5', mesic: 'm1', priorita: 'vysoká',
+    nazev: 'Bezplatný diagnostický rozhovor jako vstupní hák — 5 firem',
+    proc: '45minutový diagnostický rozhovor je nejlepší způsob jak ukázat hodnotu bez rizika pro klienta. 60% konvertuje na placenou zakázku.',
+    jak: 'Nabídni bezplatný "Strategický check-up" nebo "HR diagnostiku". Po rozhovoru: písemné shrnutí s 3 doporučeními. Jedno doporučení vyřeš zdarma.',
+    cil: '5 provedených diagnostik, min. 1-2 placené zakázky z nich.',
+    tyden: '3-4',
+  },
+  { id: 'c6', mesic: 'm1', priorita: 'střední',
+    nazev: 'Identifikuj 3 referral partnery',
+    proc: 'Právníci, účetní, investiční poradci, HR agentury — každý zná firmy které potřebují consulting. Jeden partner = přístup k desítkám klientů.',
+    jak: 'Navažu kontakt. Navrhni reciprocitu: doporučuješ je svým klientům, oni tebe. Připrav krátké představení co děláš a pro koho.',
+    cil: '3 aktivní referral partnerství s jasným modelem spolupráce.',
+    tyden: '3-4',
+  },
+  { id: 'c7', mesic: 'm1', priorita: 'kritická',
+    nazev: 'Uzavři první placenou zakázku',
+    proc: 'Jeden platící klient dokazuje že model funguje. Vše ostatní je teorie.',
+    jak: 'Z diagnostik a schůzek vyber nejslibnějšího. Follow-up do 24h. Nabídni jasný výstup za pevnou cenu. Začni s auditem nebo workshopem jako vstupní zakázkou.',
+    cil: 'Min. 1 podepsaná smlouva a uhrazená záloha do konce měsíce 1.',
+    tyden: '3-4',
+  },
+  { id: 'c8', mesic: 'm2', priorita: 'kritická',
+    nazev: 'Rozjeď referral síť — formální dohoda s partnery',
+    proc: 'Referral je nejlevnější zdroj klientů s nejvyšší konverzní mírou. Musí mít jasný důvod tě doporučovat.',
+    jak: 'Pro každého aktivního partnera: domluv schůzku, vysvětli přesně co děláš a pro koho, domluv model spolupráce. Připrav onepager který mohou předat.',
+    cil: 'Min. 3 formální partnerství, každé s jasným modelem a prvním doporučením.',
+    tyden: '5-8',
+  },
+  { id: 'c9', mesic: 'm2', priorita: 'vysoká',
+    nazev: 'Nastav thought leadership content strategii',
+    proc: 'Články a posty o tvé oblasti = inbound leady bez studeného outreachu. Expert content buduje důvěru před první schůzkou.',
+    jak: 'LinkedIn: 2-3 posty týdně. Formát: pohled experta na aktuální problém, ne reklama. Cíl: CEO a HR ředitelé. Jeden delší článek měsíčně na LinkedIn nebo firemní blog.',
+    cil: 'Min. 500 followerů, 3 inbound poptávky měsíčně z LinkedIn.',
+    tyden: '5-12',
+  },
+  { id: 'c10', mesic: 'm2', priorita: 'vysoká',
+    nazev: 'Uzavři 2-3 zakázky za měsíc — systematicky',
+    proc: 'Měsíc 2-3 je test jestli máš fungující systém nebo jen štěstí z měsíce 1.',
+    jak: 'Pipeline management: každý lead má follow-up datum. Každé pondělí: Follow-up dnes v appce. Žádný kontakt bez odpovědi déle než 7 dní.',
+    cil: '2-3 uzavřené zakázky měsíčně, revenue 150 000 - 500 000 Kč.',
+    tyden: '5-12',
+  },
+  { id: 'c11', mesic: 'm2', priorita: 'střední',
+    nazev: 'Spusť první webinář nebo workshop pro potenciální klienty',
+    proc: 'Webinář generuje warm leads ve velkém. 1 webinář = 30-100 potenciálních klientů najednou.',
+    jak: 'Téma: praktický problém tvé cílové skupiny. Délka: 60 minut. Bezplatný přístup, na konci nabídka diagnostiky. Promuj přes LinkedIn a referral partnery.',
+    cil: 'Min. 30 registrací, 5+ poptávek po diagnostice.',
+    tyden: '7-12',
+  },
+  { id: 'c12', mesic: 'm2', priorita: 'střední',
+    nazev: 'Přidej retainer nabídku ke každé dokončené zakázce',
+    proc: 'Retainer = předvídatelný měsíční příjem. Klient co dokončil projekt je nejlepší kandidát na retainer — zná tě a má důvěru.',
+    jak: 'Po každé zakázce: follow-up call 2 týdny po výstupu. Projdi výsledky. Nabídni měsíční retainer jako přirozený next step.',
+    cil: 'Min. 1-2 klienti na retaineru do konce měsíce 3.',
+    tyden: '9-12',
+  },
+  { id: 'c13', mesic: 'm3', priorita: 'kritická',
+    nazev: 'Přejdi do advisory role — pečuj o existující klienty',
+    proc: 'Upsell je 5× levnější než nový klient. Klient co viděl výsledky je připraven koupit větší zakázku nebo retainer.',
+    jak: 'Pro každého dokončeného klienta: follow-up 30 dní po výstupu. Projdi implementaci doporučení. Nabídni implementační projekt nebo retainer jako next step.',
+    cil: 'Min. 30% konverzní míra: jednorázová zakázka → retainer nebo větší projekt.',
+    tyden: '13-24',
+  },
+  { id: 'c14', mesic: 'm3', priorita: 'vysoká',
+    nazev: 'Vytvoř případové studie úspěšných projektů',
+    proc: 'Případová studie = nejsilnější prodejní nástroj. Konkrétní výsledky pro konkrétní firmu přesvědčí více než jakákoli prezentace.',
+    jak: 'Pro každý dokončený projekt: situace → výzva → tvůj přístup → měřitelné výsledky. Se souhlasem klienta sdílej na LinkedIn a webu.',
+    cil: '3-5 případových studií připravených k použití v prodeji.',
+    tyden: '13-20',
+  },
+  { id: 'c15', mesic: 'm3', priorita: 'vysoká',
+    nazev: 'Spusť přednáškovou strategii — pozicování jako expert',
+    proc: 'Přednášky na byznys eventů = pasivní inbound leady. Jeden talk = 10-50 potenciálních klientů najednou.',
+    jak: 'Kontaktuj organizátory HR konferencí, manažerských eventů, podnikatelských klubů. Nabídni konkrétní téma s praktickými výstupy. Cíl: 1 přednáška za měsíc.',
+    cil: '3+ potvrzené přednášky, min. 5 poptávek z každé.',
+    tyden: '13-24',
+  },
+  { id: 'c16', mesic: 'm3', priorita: 'střední',
+    nazev: 'Rozšiř portfolio o skupinové programy',
+    proc: 'Skupinové programy (leadership, týmový rozvoj) = vyšší hodinová sazba, menší závislost na jednom klientovi, škálovatelnost.',
+    jak: 'Navrhni skupinový program pro 8-12 manažerů: 4-6 workshopů + individuální koučink. Oslovi firmy kde znáš HR ředitele nebo CEO.',
+    cil: 'Min. 1 skupinový program prodaný a zahájený do konce měsíce 6.',
+    tyden: '17-24',
+  },
+]
+
+const PLAN_BLOKY_RE = [
+  {
+    id: 'situace',
+    nazev: 'Blok 1 — Kde jsem teď',
+    cas: '0:00–0:15',
+    barva: '#534AB7',
+    uvod: 'Než začneme plánovat, potřebuji pochopit výchozí stav — co fungovalo, co ne.',
+    otazky: [
+      'Kolik transakcí jsem uzavřel za posledních 6 měsíců a jaká byla průměrná provize?',
+      'Odkud pochází většina mých klientů — doporučení, reklama, sociální sítě, přímý kontakt?',
+      'Kde je největší problém — získání mandátu, nalezení kupce, nebo uzavření transakce?',
+      'Jaká je průměrná doba od prvního kontaktu do uzavření transakce?',
+      'Co dělám, co funguje? Co dělám zbytečně?',
+    ],
+    mujNavrh: 'Na základě analýzy vidím 3 hlavní příležitosti: (1) Systematizovat referral program — spoléhat na náhodu nestačí. (2) Přidat správu nemovitostí jako opakující se příjem. (3) Investovat do osobního brandu na sociálních sítích.',
+  },
+  {
+    id: 'zakaznik',
+    nazev: 'Blok 2 — Ideální klient a první mandát',
+    cas: '0:15–0:45',
+    barva: '#0F6E56',
+    uvod: 'Bez jasné definice ideálního klienta trávíš čas s lidmi, kteří nekoupí nebo neprodají.',
+    otazky: [
+      'Jaký typ nemovitostí a jaká lokalita jsou mou silnou stránkou?',
+      'Zaměřuji se více na prodávající nebo kupující — a proč?',
+      'Mám kontakty mezi hypotečními poradci, právníky nebo developery (referral partneři)?',
+      'Jaká je typická první námitka proč klient neuzavřel mandát se mnou?',
+      'Mám databázi kupujících kteří čekají na vhodnou nemovitost?',
+    ],
+    mujNavrh: 'Navrhovaný 30denní plán: Týden 1 — mapování kontaktů + CRM + mandátová prezentace. Týden 2 — 10 schůzek + 5 bezplatných ocenění. Týden 3-4 — follow-up, podpisy mandátů, první inzerce.',
+  },
+  {
+    id: 'infrastruktura',
+    nazev: 'Blok 3 — Marketingová infrastruktura',
+    cas: '0:45–1:10',
+    barva: '#185FA5',
+    uvod: 'Profesionální prezentace nemovitosti = rychlejší prodej, vyšší cena, spokojený klient a reference.',
+    otazky: [
+      'Používám profesionální fotografii a video pro každou nemovitost?',
+      'Kde inzeruji — Sreality, Bezrealitky, sociální sítě, vlastní web?',
+      'Mám připravenou prezentaci pro prodávající klienty?',
+      'Posílám kupujícím pravidelné updaty o nových nemovitostech?',
+      'Jak měřím účinnost jednotlivých marketingových kanálů?',
+    ],
+    mujNavrh: 'Fáze 1 (měsíc 1-2): CRM + mandátová prezentace + profesionální foto standard. Fáze 2 (měsíc 2-4): sociální sítě + newsletter kupujícím + referral partneři. Fáze 3 (měsíc 4-6): správa nemovitostí + investiční poradenství + eventy.',
+  },
+  {
+    id: 'role',
+    nazev: 'Blok 4 — Osobní brand a pozicování',
+    cas: '1:10–1:35',
+    barva: '#633806',
+    uvod: 'Makléř = lokální expert. Lidé kupují nemovitost od makléře kterému věří a kterého znají.',
+    otazky: [
+      'Mám jasné pozicování — v čem jsem jiný než ostatní makléři?',
+      'Jak aktivně používám sociální sítě pro budování osobního brandu?',
+      'Sbírám systematicky recenze a hodnocení od spokojených klientů?',
+      'Mám na webu nebo sociálních sítích případové studie úspěšných prodejů?',
+    ],
+    mujNavrh: 'Osobní brand strategie: Instagram + Facebook s 3 posty týdně (prodané nemovitosti, tipy, zákulisí). Cíl za 6 měsíců: 1000 followerů, 3-5 inbound poptávek měsíčně ze sociálních sítí.',
+  },
+  {
+    id: 'upsell',
+    nazev: 'Blok 5 — Upsell a opakující se příjem',
+    cas: '1:35–1:50',
+    barva: '#185FA5',
+    uvod: 'Správa nemovitostí a investiční poradenství = předvídatelný měsíční příjem nezávislý na transakcích.',
+    otazky: [
+      'Nabízím správu nemovitostí — pokud ne, proč?',
+      'Mám klienty kteří vlastní více nemovitostí a mohli by ocenit správu portfolia?',
+      'Nabízím investiční poradenství — výpočet výnosu, analýza lokality?',
+      'Jak systematicky žádám spokojené klienty o doporučení?',
+    ],
+    mujNavrh: 'Cross-sell strategie: po každé transakci nabídni správu nemovitosti. Po 2-3 transakcích s klientem nabídni investiční konzultaci. Cíl: 20-30% příjmů z opakujících se zdrojů do konce roku.',
+  },
+  {
+    id: 'akcniplan',
+    nazev: 'Blok 6 — Výstupy a akční plán',
+    cas: '1:50–2:00',
+    barva: '#27500A',
+    uvod: 'Každý plán bez konkrétních akcí je jen hezká teorie. Odcházím s jasným úkolem na příští týden.',
+    otazky: [
+      'Co jsem dnes neřešil a měl bych?',
+      'Jaká je největší překážka mého růstu v příštích 3 měsících?',
+      'Co potřebuji zařídit/nastavit aby plán fungoval?',
+    ],
+    mujNavrh: 'Akční plán tento týden: přidat 20 kontaktů do CRM, připravit mandátovou prezentaci, domluvit 5 schůzek s potenciálními prodávajícími, kontaktovat 2 hypoteční poradce.',
+  },
+]
+
+const PLAN_BLOKY_CONS = [
+  {
+    id: 'situace',
+    nazev: 'Blok 1 — Kde jsem teď',
+    cas: '0:00–0:15',
+    barva: '#534AB7',
+    uvod: 'Než začneme plánovat, potřebuji pochopit výchozí stav — co fungovalo, co ne.',
+    otazky: [
+      'Kolik zakázek jsem uzavřel za posledních 6 měsíců a jaký byl průměrný objem?',
+      'Odkud pochází většina mých klientů — doporučení, přímý kontakt, LinkedIn, eventy?',
+      'Kde je největší problém — získání klientů, konverze schůzky na zakázku, nebo udržení klienta?',
+      'Jaká je průměrná délka vztahu s klientem — jednorázový projekt nebo opakující se spolupráce?',
+      'Co dělám, co funguje? Co dělám zbytečně?',
+    ],
+    mujNavrh: 'Na základě analýzy vidím 3 hlavní příležitosti: (1) Systematizovat referral program. (2) Přidat retainer nabídku ke každé dokončené zakázce. (3) Investovat do thought leadership content na LinkedIn.',
+  },
+  {
+    id: 'zakaznik',
+    nazev: 'Blok 2 — Ideální klient a první zakázka',
+    cas: '0:15–0:45',
+    barva: '#0F6E56',
+    uvod: 'Bez jasné definice ideálního klienta trávíš čas s firmami, které nekoupí nebo nemohou zaplatit.',
+    otazky: [
+      'Jaká je moje specializace — HR, strategie, leadership, change management?',
+      'Jaká velikost a odvětví firmy jsou mou silnou stránkou?',
+      'Mám kontakty mezi právníky, účetními, investičními poradci nebo HR agenturami (referral partneři)?',
+      'Jaká je typická první námitka proč klient nepodepsal smlouvu?',
+      'Jaký vstupní produkt funguje nejlépe — audit, workshop, nebo diagnostická schůzka?',
+    ],
+    mujNavrh: 'Navrhovaný 30denní plán: Týden 1 — mapování kontaktů + CRM + nabídkové šablony. Týden 2 — 10 schůzek + 5 bezplatných diagnostik. Týden 3-4 — follow-up, podpisy smluv, první projekt.',
+  },
+  {
+    id: 'infrastruktura',
+    nazev: 'Blok 3 — Consulting infrastruktura',
+    cas: '0:45–1:10',
+    barva: '#185FA5',
+    uvod: 'Bez systémů a nástrojů je každá zakázka stres. Chci se dohodnout co stavíme teď a co může počkat.',
+    otazky: [
+      'Mám CRM pro sledování kontaktů a pipeline?',
+      'Mám připravené nabídkové šablony pro každou hlavní službu?',
+      'Používám standardizovanou metodiku pro každý typ zakázky?',
+      'Jak měřím spokojenost klientů a sbírám zpětnou vazbu?',
+      'Mám kapacitu na více zakázek najednou — nebo pracuji sólo?',
+    ],
+    mujNavrh: 'Fáze 1 (měsíc 1-2): CRM + nabídkové šablony + diagnostická metodika. Fáze 2 (měsíc 2-4): referral partnerství + LinkedIn content + webinář. Fáze 3 (měsíc 4-6): retainer program + případové studie + přednášky.',
+  },
+  {
+    id: 'role',
+    nazev: 'Blok 4 — Osobní brand a thought leadership',
+    cas: '1:10–1:35',
+    barva: '#633806',
+    uvod: 'Klienti kupují od konzultantů kterým věří a které považují za experty. Brand buduj dřív než ho potřebuješ.',
+    otazky: [
+      'Mám jasné pozicování — v čem jsem jiný než ostatní konzultanti ve stejné oblasti?',
+      'Sdílím pravidelně obsah na LinkedIn — případové studie, tipy, pohled experta?',
+      'Sbírám systematicky reference od spokojených klientů?',
+      'Přednáším na konferencích nebo byznys eventech?',
+    ],
+    mujNavrh: 'Thought leadership strategie: LinkedIn 2-3 posty týdně (pohled experta, ne reklama), jeden delší článek měsíčně, cíl za 6 měsíců: 3 inbound poptávky měsíčně z LinkedIn bez aktivního outreachu.',
+  },
+  {
+    id: 'retainer',
+    nazev: 'Blok 5 — Retainer a opakující se příjem',
+    cas: '1:35–1:50',
+    barva: '#185FA5',
+    uvod: 'Retainer = předvídatelný příjem a hlubší partnerství s klientem. Průměrný retainer klient = 12× vyšší LTV než jednorázová zakázka.',
+    otazky: [
+      'Nabízím retainer po každé dokončené zakázce — pokud ne, proč?',
+      'Jaká je moje retainer nabídka — co přesně klient dostává každý měsíc?',
+      'Mám klienty kteří by ocenili průběžný přístup k mé expertíze?',
+      'Jak systematicky žádám spokojené klienty o doporučení?',
+    ],
+    mujNavrh: 'Retainer strategie: po každé zakázce follow-up 2 týdny po výstupu, nabídni měsíční retainer. Obsah retaineru: X hodin konzultací + ad-hoc dostupnost + review priorit. Cíl: 20-30% příjmů z retainerů do konce roku.',
+  },
+  {
+    id: 'akcniplan',
+    nazev: 'Blok 6 — Výstupy a akční plán',
+    cas: '1:50–2:00',
+    barva: '#27500A',
+    uvod: 'Každý plán bez konkrétních akcí je jen hezká teorie. Odcházím s jasným úkolem na příští týden.',
+    otazky: [
+      'Co jsem dnes neřešil a měl bych?',
+      'Jaká je největší překážka mého růstu v příštích 3 měsících?',
+      'Co potřebuji zařídit aby plán fungoval?',
+    ],
+    mujNavrh: 'Akční plán tento týden: přidat 20 kontaktů do CRM, připravit nabídkové šablony, domluvit 5 schůzek, kontaktovat 2 potenciální referral partnery.',
+  },
+]
+
 const MESICE = [
   { id: 'm1', label: 'Měsíc 1', sub: 'Průzkumník a lovec', barva: '#534AB7', bg: '#EEEDFE' },
   { id: 'm2', label: 'Měsíc 2–3', sub: 'Stavitel systému', barva: '#0F6E56', bg: '#E1F5EE' },
@@ -2869,7 +3291,11 @@ const InlineEdit = ({ value, onSave, style, multiline }) => {
   )
 }
 
-const PruvodceStrategii = () => {
+const PruvodceStrategii = ({ industry }) => {
+  const isRE = industry === 'real-estate'
+  const isCons = !isRE && industry !== 'cybersecurity'
+  const MESICE_ACTIVE = isRE ? MESICE_RE : isCons ? MESICE_CONS : MESICE_ACTIVE
+  const KROKY_ACTIVE = isRE ? KROKY_RE : isCons ? KROKY_CONS : KROKY_ACTIVE
   const [aktivniMesic, setAktivniMesic] = useState('m1')
   const [splneno, setSplneno] = useState({})
   const [odpovedi, setOdpovedi] = useState({})
@@ -2951,10 +3377,10 @@ const PruvodceStrategii = () => {
   }
 
   const getKrokyMesice = (mid) => {
-    const kroky = KROKY.filter(k => k.mesic === mid)
+    const kroky = KROKY_ACTIVE.filter(k => k.mesic === mid)
     return [...kroky].sort((a, b) => {
-      const pa = krokOrder[a.id] ?? KROKY.findIndex(k => k.id === a.id)
-      const pb = krokOrder[b.id] ?? KROKY.findIndex(k => k.id === b.id)
+      const pa = krokOrder[a.id] ?? KROKY_ACTIVE.findIndex(k => k.id === a.id)
+      const pb = krokOrder[b.id] ?? KROKY_ACTIVE.findIndex(k => k.id === b.id)
       return pa - pb
     })
   }
@@ -2968,7 +3394,7 @@ const PruvodceStrategii = () => {
     e.preventDefault()
     if (!dragKrokId || dragKrokId === targetId) { setDragKrokId(null); setDragKrokOver(null); return }
 
-    const allKroky = [...KROKY]
+    const allKroky = [...KROKY_ACTIVE]
     const fromKrok = allKroky.find(k => k.id === dragKrokId)
     const targetKrok = allKroky.find(k => k.id === targetId)
 
@@ -2997,12 +3423,12 @@ const PruvodceStrategii = () => {
 
   const getMesicKroku = (krokId) => {
     const saved = null
-    return saved || KROKY.find(k => k.id === krokId)?.mesic
+    return saved || KROKY_ACTIVE.find(k => k.id === krokId)?.mesic
   }
 
   const krokyMesice = getKrokyMesice
   const splnenoMesice = (mid) => krokyMesice(mid).filter(k => splneno[k.id]).length
-  const celkemSplneno = KROKY.filter(k => splneno[k.id]).length
+  const celkemSplneno = KROKY_ACTIVE.filter(k => splneno[k.id]).length
   const prioritaBarva = { 'kritická': '#A32D2D', 'vysoká': '#854F0B', 'střední': '#185FA5' }
   const prioritaBg = { 'kritická': '#FCEBEB', 'vysoká': '#FAEEDA', 'střední': '#E6F1FB' }
   const fmt = (iso) => new Date(iso).toLocaleString('cs-CZ', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })
@@ -3013,15 +3439,15 @@ const PruvodceStrategii = () => {
     <div>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
         <div style={{fontSize:13,color:'#888'}}>
-          Splněno {celkemSplneno} z {KROKY.length} kroků · <span style={{fontSize:12,color:'#bbb'}}>Texty editovatelné kliknutím · Kroky přesouvatelné tažením</span>
+          Splněno {celkemSplneno} z {KROKY_ACTIVE.length} kroků · <span style={{fontSize:12,color:'#bbb'}}>Texty editovatelné kliknutím · Kroky přesouvatelné tažením</span>
         </div>
         <div style={{background:'#f5f5f3',borderRadius:8,height:8,width:200,overflow:'hidden'}}>
-          <div style={{background:'#1D9E75',height:'100%',width:(celkemSplneno/KROKY.length*100)+'%',transition:'width 0.3s',borderRadius:8}} />
+          <div style={{background:'#1D9E75',height:'100%',width:(celkemSplneno/KROKY_ACTIVE.length*100)+'%',transition:'width 0.3s',borderRadius:8}} />
         </div>
       </div>
 
       <div style={{display:'flex',gap:8,marginBottom:24}}>
-        {MESICE.map(m => {
+        {MESICE_ACTIVE.map(m => {
           const kroky = krokyMesice(m.id)
           const done = splnenoMesice(m.id)
           const active = aktivniMesic === m.id
@@ -3031,7 +3457,7 @@ const PruvodceStrategii = () => {
               onDrop={async e => {
                 e.preventDefault()
                 if (!dragKrokId) return
-                const pozice = KROKY.findIndex(k => k.id === dragKrokId)
+                const pozice = KROKY_ACTIVE.findIndex(k => k.id === dragKrokId)
                 const novyOrder = { ...krokOrder, [dragKrokId]: pozice }
                 setKrokOrder(novyOrder)
                 await supabase.from('pruvodce_order').upsert([{ krok_id: dragKrokId, pozice, mesic: m.id }])
@@ -3057,7 +3483,7 @@ const PruvodceStrategii = () => {
       <div style={{display:'flex',flexDirection:'column',gap:12}}>
         {krokyMesice(aktivniMesic).map((krok, i) => {
           const done = splneno[krok.id]
-          const mesic = MESICE.find(m => m.id === aktivniMesic)
+          const mesic = MESICE_ACTIVE.find(m => m.id === aktivniMesic)
           const dynOdp = krok.dynamicke ? odpovedi[krok.dynamicke.klic]?.trim() : null
           const dynZprava = dynOdp
             ? (dynOdp.toLowerCase().includes('ne') || dynOdp.toLowerCase().includes('0') || dynOdp.toLowerCase().includes('žádn')
@@ -3434,7 +3860,10 @@ const PLAN_BLOKY = [
   },
 ]
 
-const StrategickyPlan = () => {
+const StrategickyPlan = ({ industry }) => {
+  const isRE = industry === 'real-estate'
+  const isCons = !isRE && industry !== 'cybersecurity'
+  const PLAN_BLOKY_ACTIVE = isRE ? PLAN_BLOKY_RE : isCons ? PLAN_BLOKY_CONS : PLAN_BLOKY_ACTIVE
   const [odpovedi, setOdpovedi] = useState({})
   const [ulozeno, setUlozeno] = useState({})
   const [aktivniBlok, setAktivniBlok] = useState('situace')
@@ -3465,8 +3894,8 @@ const StrategickyPlan = () => {
     setSaving(false)
   }
 
-  const blok = PLAN_BLOKY.find(b => b.id === aktivniBlok)
-  const celkemOtazek = PLAN_BLOKY.reduce((s, b) => s + b.otazky.length, 0)
+  const blok = PLAN_BLOKY_ACTIVE.find(b => b.id === aktivniBlok)
+  const celkemOtazek = PLAN_BLOKY_ACTIVE.reduce((s, b) => s + b.otazky.length, 0)
   const zodpovezeno = Object.keys(ulozeno).filter(k => ulozeno[k]?.trim()).length
 
   return (
@@ -3479,7 +3908,7 @@ const StrategickyPlan = () => {
       </div>
 
       <div style={{display:'flex',gap:8,marginBottom:20,flexWrap:'wrap'}}>
-        {PLAN_BLOKY.map(b => {
+        {PLAN_BLOKY_ACTIVE.map(b => {
           const zodp = b.otazky.filter((_, i) => ulozeno[b.id + '_' + i]?.trim()).length
           const done = zodp === b.otazky.length
           return (
@@ -5093,8 +5522,8 @@ export default function App() {
         {tab==='dokumenty' && <PdfDocuments />}
         {tab==='dashboard' && <Dashboard leads={leads} onOpen={setDetail} industry={userProfile?.industry || 'general'} />}
         {tab==='ukoly' && <UkolyView leads={leads} onLeadChange={onLeadChange} />}
-        {tab==='strategie' && <StrategickyPlan />}
-        {tab==='pruvodce' && <PruvodceStrategii />}
+        {tab==='strategie' && <StrategickyPlan industry={userProfile?.industry || 'general'} />}
+        {tab==='pruvodce' && <PruvodceStrategii industry={userProfile?.industry || 'general'} />}
         {tab==='produkty' && <ProduktyPrehled industry={userProfile?.industry || 'general'} />}
       </div>
 

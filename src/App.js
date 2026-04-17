@@ -3664,15 +3664,84 @@ const PRODUKTY_INFO_RE = {
 
 const ProduktyPrehled = ({ industry }) => {
   const activeInfo = industry === 'real-estate' ? PRODUKTY_INFO_RE : (industry !== 'cybersecurity') ? PRODUKTY_INFO_CONSULTING : PRODUKTY_INFO
-  const vsechny = Object.entries(activeInfo)
+  const [customProdukty, setCustomProdukty] = useState([])
+  const [hiddenDefaults, setHiddenDefaults] = useState([])
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [editingId, setEditingId] = useState(null)
+  const [newProdukt, setNewProdukt] = useState({ nazev:'', popis:'', cena:'', typ:'', barva:'#534AB7', bg:'#EEEDFE' })
+  const [loadingP, setLoadingP] = useState(true)
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const { data } = await supabase.from('custom_produkty').select('*').eq('user_id', session?.user?.id).order('poradi')
+        if (data) {
+          setCustomProdukty(data.filter(p => !p.is_hidden_default))
+          setHiddenDefaults(data.filter(p => p.is_hidden_default).map(p => p.nazev))
+        }
+      } catch(e) { console.error(e) }
+      setLoadingP(false)
+    }
+    load()
+  }, [])
+
+  const hideDefault = async (nazev) => {
+    setHiddenDefaults(prev => [...prev, nazev])
+    await supabase.from('custom_produkty').insert([{ user_id: session?.user?.id, nazev, is_hidden_default: true, popis:'', cena:'', typ:'', barva:'', bg:'' }])
+  }
+
+  const showDefault = async (nazev) => {
+    setHiddenDefaults(prev => prev.filter(n => n !== nazev))
+    await supabase.from('custom_produkty').delete().eq('user_id', session?.user?.id).eq('nazev', nazev).eq('is_hidden_default', true)
+  }
+
+  const addProdukt = async () => {
+    if (!newProdukt.nazev.trim()) return
+    const { data } = await supabase.from('custom_produkty').insert([{
+      user_id: session?.user?.id,
+      nazev: newProdukt.nazev,
+      popis: newProdukt.popis,
+      cena: newProdukt.cena,
+      typ: newProdukt.typ,
+      barva: newProdukt.barva,
+      bg: newProdukt.bg,
+      is_hidden_default: false,
+      poradi: customProdukty.length
+    }]).select().single()
+    if (data) setCustomProdukty(prev => [...prev, data])
+    setNewProdukt({ nazev:'', popis:'', cena:'', typ:'', barva:'#534AB7', bg:'#EEEDFE' })
+    setShowAddForm(false)
+  }
+
+  const deleteCustom = async (id) => {
+    setCustomProdukty(prev => prev.filter(p => p.id !== id))
+    await supabase.from('custom_produkty').delete().eq('id', id)
+  }
+
+  const BARVY = [
+    { barva:'#534AB7', bg:'#EEEDFE', label:'Fialová' },
+    { barva:'#0F6E56', bg:'#E1F5EE', label:'Zelená' },
+    { barva:'#185FA5', bg:'#E6F1FB', label:'Modrá' },
+    { barva:'#854F0B', bg:'#FAEEDA', label:'Oranžová' },
+    { barva:'#27500A', bg:'#EAF3DE', label:'Tmavě zelená' },
+    { barva:'#791F1F', bg:'#FCEBEB', label:'Červená' },
+    { barva:'#633806', bg:'#FDF3E7', label:'Hnědá' },
+    { barva:'#185FA5', bg:'#E6F1FB', label:'Modrá 2' },
+  ]
+
+  const visibleDefaults = Object.entries(activeInfo).filter(([nazev]) => !hiddenDefaults.includes(nazev))
+
   return (
     <div>
-      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))',gap:14}}>
-        {vsechny.map(([nazev, info]) => (
-          <div key={nazev} style={{background:'#fff',border:'0.5px solid #e8e8e8',borderRadius:12,overflow:'hidden'}}>
-            <div style={{background:info.bg,borderBottom:'0.5px solid ' + info.barva + '33',padding:'14px 18px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))',gap:14,marginBottom:14}}>
+        {visibleDefaults.map(([nazev, info]) => (
+          <div key={nazev} style={{background:'#fff',border:'0.5px solid #e8e8e8',borderRadius:12,overflow:'hidden',position:'relative'}}>
+            <button onClick={() => hideDefault(nazev)} title="Odebrat tento produkt"
+              style={{position:'absolute',top:8,right:8,background:'none',border:'none',color:'#ccc',cursor:'pointer',fontSize:16,lineHeight:1,zIndex:2,padding:'2px 6px',borderRadius:4}}
+              onMouseEnter={e=>e.target.style.color='#e44'} onMouseLeave={e=>e.target.style.color='#ccc'}>×</button>
+            <div style={{background:info.bg,borderBottom:'0.5px solid '+info.barva+'33',padding:'14px 18px',display:'flex',justifyContent:'space-between',alignItems:'center',paddingRight:36}}>
               <div style={{fontSize:15,fontWeight:500,color:info.barva}}>{nazev}</div>
-              <span style={{fontSize:11,padding:'2px 8px',borderRadius:10,background:'#fff',color:info.barva,border:'0.5px solid ' + info.barva + '44'}}>{info.typ}</span>
+              <span style={{fontSize:11,padding:'2px 8px',borderRadius:10,background:'#fff',color:info.barva,border:'0.5px solid '+info.barva+'44'}}>{info.typ}</span>
             </div>
             <div style={{padding:'14px 18px'}}>
               <div style={{fontSize:13,color:'#555',lineHeight:1.6,marginBottom:12}}>{info.popis}</div>
@@ -3683,7 +3752,98 @@ const ProduktyPrehled = ({ industry }) => {
             </div>
           </div>
         ))}
+
+        {customProdukty.filter(p => !p.is_hidden_default).map(p => (
+          <div key={p.id} style={{background:'#fff',border:'0.5px solid #e8e8e8',borderRadius:12,overflow:'hidden',position:'relative'}}>
+            <button onClick={() => deleteCustom(p.id)} title="Smazat vlastní produkt"
+              style={{position:'absolute',top:8,right:8,background:'none',border:'none',color:'#ccc',cursor:'pointer',fontSize:16,lineHeight:1,zIndex:2,padding:'2px 6px',borderRadius:4}}
+              onMouseEnter={e=>e.target.style.color='#e44'} onMouseLeave={e=>e.target.style.color='#ccc'}>×</button>
+            <div style={{background:p.bg||'#EEEDFE',borderBottom:'0.5px solid '+(p.barva||'#534AB7')+'33',padding:'14px 18px',display:'flex',justifyContent:'space-between',alignItems:'center',paddingRight:36}}>
+              <div style={{fontSize:15,fontWeight:500,color:p.barva||'#534AB7'}}>{p.nazev}</div>
+              {p.typ && <span style={{fontSize:11,padding:'2px 8px',borderRadius:10,background:'#fff',color:p.barva||'#534AB7',border:'0.5px solid '+(p.barva||'#534AB7')+'44'}}>{p.typ}</span>}
+            </div>
+            <div style={{padding:'14px 18px'}}>
+              <div style={{fontSize:13,color:'#555',lineHeight:1.6,marginBottom:12}}>{p.popis}</div>
+              {p.cena && <div style={{display:'flex',alignItems:'center',gap:6}}>
+                <span style={{fontSize:11,color:'#aaa'}}>Cena:</span>
+                <span style={{fontSize:13,fontWeight:500,color:'#1a1a1a'}}>{p.cena}</span>
+              </div>}
+            </div>
+          </div>
+        ))}
+
+        <button onClick={() => setShowAddForm(true)} style={{
+          background:'#fafaf8',border:'1.5px dashed #e0e0e0',borderRadius:12,
+          display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
+          gap:8,cursor:'pointer',minHeight:160,color:'#aaa',fontFamily:'inherit',
+          transition:'border-color 0.15s'
+        }} onMouseEnter={e=>e.currentTarget.style.borderColor='#534AB7'} onMouseLeave={e=>e.currentTarget.style.borderColor='#e0e0e0'}>
+          <div style={{fontSize:28}}>+</div>
+          <div style={{fontSize:13}}>Přidat vlastní produkt / službu</div>
+        </button>
       </div>
+
+      {hiddenDefaults.length > 0 && (
+        <div style={{marginBottom:20,padding:'12px 16px',background:'#f8f8f6',borderRadius:10,border:'0.5px solid #e0e0e0'}}>
+          <div style={{fontSize:12,color:'#aaa',marginBottom:8}}>Skryté výchozí produkty — klikni pro obnovení:</div>
+          <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+            {hiddenDefaults.map(n => (
+              <button key={n} onClick={() => showDefault(n)} style={{
+                padding:'4px 12px',borderRadius:8,border:'0.5px solid #ddd',background:'#fff',
+                fontSize:12,color:'#888',cursor:'pointer',fontFamily:'inherit'
+              }}>+ {n}</button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {showAddForm && (
+        <div style={{background:'#fff',border:'0.5px solid #e0e0e0',borderRadius:12,padding:'20px 24px',marginBottom:20}}>
+          <div style={{fontSize:14,fontWeight:600,marginBottom:16}}>Nový produkt / služba</div>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:12}}>
+            <div>
+              <div style={{fontSize:11,color:'#888',marginBottom:4}}>Název *</div>
+              <input value={newProdukt.nazev} onChange={e=>setNewProdukt(p=>({...p,nazev:e.target.value}))}
+                placeholder="např. Strategický audit"
+                style={{width:'100%',padding:'8px 12px',borderRadius:8,border:'0.5px solid #ddd',fontSize:13,fontFamily:'inherit'}} />
+            </div>
+            <div>
+              <div style={{fontSize:11,color:'#888',marginBottom:4}}>Typ / délka</div>
+              <input value={newProdukt.typ} onChange={e=>setNewProdukt(p=>({...p,typ:e.target.value}))}
+                placeholder="např. Jednorázový (2–4 týdny)"
+                style={{width:'100%',padding:'8px 12px',borderRadius:8,border:'0.5px solid #ddd',fontSize:13,fontFamily:'inherit'}} />
+            </div>
+          </div>
+          <div style={{marginBottom:12}}>
+            <div style={{fontSize:11,color:'#888',marginBottom:4}}>Popis</div>
+            <textarea value={newProdukt.popis} onChange={e=>setNewProdukt(p=>({...p,popis:e.target.value}))}
+              placeholder="Krátký popis co produkt zahrnuje..."
+              style={{width:'100%',padding:'8px 12px',borderRadius:8,border:'0.5px solid #ddd',fontSize:13,fontFamily:'inherit',resize:'vertical',minHeight:72}} />
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:16}}>
+            <div>
+              <div style={{fontSize:11,color:'#888',marginBottom:4}}>Cena</div>
+              <input value={newProdukt.cena} onChange={e=>setNewProdukt(p=>({...p,cena:e.target.value}))}
+                placeholder="např. Od 80 000 Kč"
+                style={{width:'100%',padding:'8px 12px',borderRadius:8,border:'0.5px solid #ddd',fontSize:13,fontFamily:'inherit'}} />
+            </div>
+            <div>
+              <div style={{fontSize:11,color:'#888',marginBottom:4}}>Barva</div>
+              <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                {BARVY.map(b => (
+                  <button key={b.barva} onClick={() => setNewProdukt(p=>({...p,barva:b.barva,bg:b.bg}))}
+                    title={b.label}
+                    style={{width:24,height:24,borderRadius:'50%',background:b.barva,border:newProdukt.barva===b.barva?'2.5px solid #333':'2px solid transparent',cursor:'pointer'}} />
+                ))}
+              </div>
+            </div>
+          </div>
+          <div style={{display:'flex',gap:8}}>
+            <button className="btn accent" onClick={addProdukt}>Přidat produkt</button>
+            <button className="btn" onClick={() => { setShowAddForm(false); setNewProdukt({nazev:'',popis:'',cena:'',typ:'',barva:'#534AB7',bg:'#EEEDFE'}) }}>Zrušit</button>
+          </div>
+        </div>
+      )}
 
       {(industry === 'cybersecurity' || industry === 'real-estate' || industry === 'general' || !industry) && (() => {
         const upsellData = {

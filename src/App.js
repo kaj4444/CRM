@@ -393,49 +393,52 @@ const LeadDetail = ({ lead, onEdit, onClose, teamMembers: tmProps }) => {
     try {
       const webQuery = [lead.firma, lead.web || (lead.email ? lead.email.split('@')[1] : ''), lead.odvetvi || ''].filter(Boolean).join(' ')
       const produktyInfo = lead.produkt ? `Navrhovaný produkt/služba: ${lead.produkt}` : ''
-      const prompt = `Jsi expert na B2B prodej a psychologii přesvědčování. Tvým úkolem je vytvořit personalizovanou obchodní nabídku.
+      const prompt = `Jsi expert na B2B prodej. Napiš personalizovaný obchodní dopis — hotový k odeslání.
 
 KLIENT:
-- Název firmy: ${lead.firma}
-- Web: ${lead.web || 'neznámý'}
-- Kontakt: ${lead.osoba || 'neznámý'} (${lead.role || ''})
-- Odvětví: ${lead.odvetvi || 'nespecifikováno'}
+- Firma: ${lead.firma}
+- Web: ${lead.web || ''}
+- Kontakt: ${lead.osoba || ''} (${lead.role || ''})
+- Odvětví: ${lead.odvetvi || ''}
+- Produkt/služba: ${lead.produkt || ''}
 - Segment: ${lead.segment || ''}
 ${produktyInfo}
-- Poznámky o klientovi: ${lead.poznamky || 'žádné'}
+- Poznámky: ${lead.poznamky || ''}
 
 INSTRUKCE:
-1. Prohledej web ${lead.web ? lead.web : ""} a veškeré dostupné informace o firmě "${lead.firma}" — web, LinkedIn, PR články, sociální sítě, recenze
-2. Vytvoř personalizovanou nabídku podle SPIN + Challenger Sale + Value Proposition frameworku
+1. Prohledej web ${lead.web || ""} a vše o firmě "${lead.firma}" — web, LinkedIn, PR, sociální sítě
+2. Napiš hotový osobní obchodní dopis — NE šablonu s placeholdery, ale konkrétní text
 
-STRUKTURA NABÍDKY (přesně toto pořadí):
+STRUKTURA DOPISU:
 
-## 🎯 Situace — Kde [firma] stojí dnes
-[2-3 věty o aktuální situaci firmy — co dělají, kde jsou na trhu, co je vidět z veřejných zdrojů]
+Dobrý den ${lead.osoba ? lead.osoba : ''},
 
-## 😓 Výzvy — Co vás pravděpodobně bolí
-[3-4 konkrétní pain points typické pro tuto firmu a odvětví. Buď konkrétní — ne generický.]
+1. PROČ PÍŠU PRÁVĚ VÁM
+[1-2 věty — co konkrétního tě na této firmě zaujalo. Specifické, ne obecné.]
 
-## ⚠️ Implikace — Co se stane, pokud to nevyřešíte
-[2-3 věty — co ztratí nebo riskují pokud problém nevyřeší. Urgence bez strašení.]
+2. CO O VÁS VÍM
+[3-5 vět — konkrétní fakta z veřejných zdrojů: co dělají, kde jsou, co vidíš z webu/LinkedInu. Ukáž přpravenost.]
 
-## 🌍 Jak to řeší ostatní — a proč to nestačí
-[Jak typicky firmy v tomto odvětví řeší tyto výzvy a kde naráží na limity současných řešení]
+3. CO SE U VÁS PRAVDĚPODOBNĚ DĚJE TEĎ
+[Začni slovem 'Říkám pravděpodobně'. 3-4 konkrétní výzvy typické pro firmy v jejich situaci/odvětví/fázi růstu. Toto je srdce dopisu — buď velmi konkrétní.]
 
-## 💡 Naše řešení — Přesně pro vás
-[Konkrétní popis jak náš produkt/služba "${lead.produkt || 'naše řešení'}" řeší JEJICH specifické výzvy. Propoj s jejich situací.]
+4. CO NEŘEŠÍM A CO ŘEŠÍM
+[Krátce — co ${lead.produkt || 'naše řešení'} NENÍ a co JE. Odliš se od konkurence.]
 
-## 📈 Co tím získáte — Konkrétní výsledky
-[3 konkrétní výsledky/benefity které mohou očekávat. Pokud možno s čísly nebo časovým horizontem.]
+5. JAK BYCH K TOMU PŘISTOUPIL U VÁS KONKRÉTNĚ
+[2-3 konkrétní kroky nebo fáze spolupráce přizpůsobené jejich situaci.]
 
-## 💰 Investice
-[Přibližná cena nebo cenové rozmezí pro ${lead.produkt || 'navrhované řešení'} — pokud víš, jinak napiš "Individuální cenová nabídka — domluvíme na schůzce"]
+6. CO BY TO PRO VÁS ZNAMENALO KONKRÉTNĚ
+[3 konkrétní výsledky/přínosy — co se změní, co získají.]
 
-## 🚀 Navrhovaný další krok
-[Konkrétní výzva k akci — co by měl udělat teď. Max 2 věty. Přímé a sebevědomé.]
+7. DALŠÍ KROK
+[Konkrétní výzva k akci. 1-2 věty. Přímé, sebevědomé.]
+
+S pozdravem,
+[jméno odesílatele]
 
 ---
-Piš česky. Buď konkrétní a personální — vyhni se generickým frázím. Nabídka musí vypadat jako že víš přesně o co jde v jejich firmě.`
+PRAVIDLA: Piš česky. Dopis musí být HOTOVÝ k odeslání — žádné [závorky] v textu. Vyhni se prázdným frázím. Buď velmi konkrétní. 400-600 slov.`
 
       const res = await fetch('/api/claude', {
         method: 'POST',
@@ -4777,6 +4780,7 @@ const UkolModal = ({ ukol, leads, onSave, onClose, teamMembers }) => {
 }
 
 const UkolyView = ({ leads, onLeadChange, teamMembers }) => {
+  const safeTeam = teamMembers && teamMembers.length > 0 ? teamMembers : ['Karel','Radim','Aleš']
   const [ukoly, setUkoly] = useState([])
   const [loading, setLoading] = useState(true)
   const [modal, setModal] = useState(null)
@@ -4939,7 +4943,7 @@ const UkolyView = ({ leads, onLeadChange, teamMembers }) => {
         <select value={filtrKdo} onChange={e=>setFiltrKdo(e.target.value)}
           style={{height:34,padding:'0 12px',border:'0.5px solid #ddd',borderRadius:8,fontSize:13,fontFamily:'inherit',background:'#fff'}}>
           <option value="">Všichni</option>
-          {(teamMembers && teamMembers.length > 0 ? teamMembers : ['Karel','Radim','Aleš']).map(o=><option key={o}>{o}</option>)}
+          {safeTeam.map(o=><option key={o}>{o}</option>)}
         </select>
         <select value={filtrStav} onChange={e=>setFiltrStav(e.target.value)}
           style={{height:34,padding:'0 12px',border:'0.5px solid #ddd',borderRadius:8,fontSize:13,fontFamily:'inherit',background:'#fff'}}>

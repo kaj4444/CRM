@@ -379,7 +379,8 @@ const QuickUkolModal = ({ lead, onClose, onSaved }) => {
   )
 }
 
-const LeadDetail = ({ lead, onEdit, onClose }) => {
+const LeadDetail = ({ lead, onEdit, onClose, teamMembers: tmProps }) => {
+  const activeTeam = (tmProps && tmProps.length > 0) ? tmProps : ['Karel','Radim','Aleš']
   const [activeTab, setActiveTab] = useState('aktivita')
   const [nabidka, setNabidka] = useState(lead.nabidka || '')
   const [nabidkaLoading, setNabidkaLoading] = useState(false)
@@ -705,12 +706,12 @@ Piš česky. Buď konkrétní a personální — vyhni se generickým frázím. 
                   <div style={{fontSize:12,color:'#0F6E56',fontWeight:600,marginBottom:10,textTransform:'uppercase'}}>Nový call</div>
                   <div style={{display:'flex',gap:8,marginBottom:10,alignItems:'center',flexWrap:'wrap'}}>
                     <div style={{display:'flex',gap:4}}>
-                      {['Karel','Radim','Aleš'].map(a => (
+                      {activeTeam.map(a => (
                         <button key={a} onClick={() => setCallAutor(a)} style={{
                           padding:'3px 10px',borderRadius:8,fontSize:12,cursor:'pointer',fontFamily:'inherit',
-                          border:'0.5px solid '+(callAutor===a?(aC[a]||'#0F6E56'):'#b0dbc8'),
-                          background:callAutor===a?(aC[a]||'#0F6E56')+'18':'#fff',
-                          color:callAutor===a?(aC[a]||'#0F6E56'):'#666',fontWeight:callAutor===a?500:400
+                          border:'0.5px solid '+(callAutor===a?'#0F6E56':'#b0dbc8'),
+                          background:callAutor===a?'#0F6E5618':'#fff',
+                          color:callAutor===a?'#0F6E56':'#666',fontWeight:callAutor===a?500:400
                         }}>{a}</button>
                       ))}
                     </div>
@@ -4549,7 +4550,7 @@ const UkolModal = ({ ukol, leads, onSave, onClose }) => {
           <div className="form-grid">
             <div className="form-row"><label>Kdo to dělá</label>
               <select value={form.kdo} onChange={e=>set('kdo',e.target.value)}>
-                {['Karel','Radim','Aleš'].map(o=><option key={o}>{o}</option>)}
+                {(teamMembers && teamMembers.length > 0 ? teamMembers : ['Karel','Radim','Aleš']).map(o=><option key={o}>{o}</option>)}
               </select>
             </div>
             <div className="form-row"><label>Do kdy</label>
@@ -4775,7 +4776,7 @@ const UkolyView = ({ leads, onLeadChange }) => {
         <select value={filtrKdo} onChange={e=>setFiltrKdo(e.target.value)}
           style={{height:34,padding:'0 12px',border:'0.5px solid #ddd',borderRadius:8,fontSize:13,fontFamily:'inherit',background:'#fff'}}>
           <option value="">Všichni</option>
-          {['Karel','Radim','Aleš'].map(o=><option key={o}>{o}</option>)}
+          {(teamMembers && teamMembers.length > 0 ? teamMembers : ['Karel','Radim','Aleš']).map(o=><option key={o}>{o}</option>)}
         </select>
         <select value={filtrStav} onChange={e=>setFiltrStav(e.target.value)}
           style={{height:34,padding:'0 12px',border:'0.5px solid #ddd',borderRadius:8,fontSize:13,fontFamily:'inherit',background:'#fff'}}>

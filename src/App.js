@@ -323,12 +323,12 @@ const QuickUkolModal = ({ lead, onClose, onSaved }) => {
             <div className="form-row">
               <label>Zodpovědný</label>
               <div style={{display:'flex',gap:6,marginTop:4}}>
-                {['Karel','Radim','Aleš'].map(a => (
+                {activeTeam.map(a => (
                   <button key={a} type="button" onClick={()=>set('kdo',a)} style={{
                     flex:1,padding:'6px 0',borderRadius:8,fontSize:13,cursor:'pointer',fontFamily:'inherit',
-                    border:'0.5px solid '+(form.kdo===a?(aC[a]||'#534AB7'):'#e0e0e0'),
-                    background:form.kdo===a?(aC[a]||'#534AB7')+'18':'#fff',
-                    color:form.kdo===a?(aC[a]||'#534AB7'):'#888',fontWeight:form.kdo===a?500:400
+                    border:'0.5px solid '+(form.kdo===a?'#534AB7':'#e0e0e0'),
+                    background:form.kdo===a?'#53 4AB718':'#fff',
+                    color:form.kdo===a?'#534AB7':'#888',fontWeight:form.kdo===a?500:400
                   }}>{a}</button>
                 ))}
               </div>
@@ -798,12 +798,12 @@ Piš česky. Buď konkrétní a personální — vyhni se generickým frázím. 
           <div style={{padding:'12px 24px 20px',borderTop:'0.5px solid #f0f0f0'}}>
             <div style={{display:'flex',gap:8,marginBottom:8,alignItems:'center'}}>
               <span style={{fontSize:12,color:'#888'}}>Píšu jako:</span>
-              {['Karel','Radim','Aleš'].map(a => (
+              {activeTeam.map(a => (
                 <button key={a} onClick={() => setAutor(a)} style={{
                   padding:'3px 12px',borderRadius:10,fontSize:12,cursor:'pointer',fontFamily:'inherit',
-                  border:'0.5px solid ' + (autor===a ? (aC[a]||'#534AB7') : '#e0e0e0'),
-                  background: autor===a ? (aC[a]||'#534AB7')+'18' : '#fff',
-                  color: autor===a ? (aC[a]||'#534AB7') : '#888',
+                  border:'0.5px solid ' + (autor===a ? '#534AB7' : '#e0e0e0'),
+                  background: autor===a ? '#EEEDFE' : '#fff',
+                  color: autor===a ? '#534AB7' : '#888',
                   fontWeight: autor===a ? 500 : 400
                 }}>{a}</button>
               ))}
@@ -3578,12 +3578,12 @@ const PruvodceStrategii = ({ industry }) => {
                   ))}
                   <div style={{display:'flex',gap:8,marginTop:8,alignItems:'flex-end'}}>
                     <div style={{display:'flex',gap:4,marginBottom:4,flexShrink:0}}>
-                      {['Karel','Radim','Ales'].map(a => (
+                      {(['Karel','Radim','Aleš']).map(a => (
                         <button key={a} onClick={() => setKomenAutor(a)} style={{
                           padding:'2px 8px',borderRadius:8,fontSize:11,cursor:'pointer',fontFamily:'inherit',
-                          border:'0.5px solid '+(komenAutor===a?(aC[a]||'#534AB7'):'#e0e0e0'),
-                          background:komenAutor===a?(aC[a]||'#534AB7')+'18':'#fff',
-                          color:komenAutor===a?(aC[a]||'#534AB7'):'#888',fontWeight:komenAutor===a?500:400
+                          border:'0.5px solid '+(komenAutor===a?'#534AB7':'#e0e0e0'),
+                          background:komenAutor===a?'#EEEDFE':'#fff',
+                          color:komenAutor===a?'#534AB7':'#888',fontWeight:komenAutor===a?500:400
                         }}>{a}</button>
                       ))}
                     </div>
@@ -3662,7 +3662,7 @@ const PRODUKTY_INFO_RE = {
   },
 }
 
-const ProduktyPrehled = ({ industry }) => {
+const ProduktyPrehled = ({ industry, session }) => {
   const activeInfo = industry === 'real-estate' ? PRODUKTY_INFO_RE : (industry !== 'cybersecurity') ? PRODUKTY_INFO_CONSULTING : PRODUKTY_INFO
   const [customProdukty, setCustomProdukty] = useState([])
   const [hiddenDefaults, setHiddenDefaults] = useState([])
@@ -4710,7 +4710,7 @@ const UkolModal = ({ ukol, leads, onSave, onClose }) => {
           <div className="form-grid">
             <div className="form-row"><label>Kdo to dělá</label>
               <select value={form.kdo} onChange={e=>set('kdo',e.target.value)}>
-                {(teamMembers && teamMembers.length > 0 ? teamMembers : ['Karel','Radim','Aleš']).map(o=><option key={o}>{o}</option>)}
+                {(['Karel','Radim','Aleš']).map(o=><option key={o}>{o}</option>)}
               </select>
             </div>
             <div className="form-row"><label>Do kdy</label>
@@ -4773,7 +4773,7 @@ const UkolModal = ({ ukol, leads, onSave, onClose }) => {
   )
 }
 
-const UkolyView = ({ leads, onLeadChange }) => {
+const UkolyView = ({ leads, onLeadChange, teamMembers }) => {
   const [ukoly, setUkoly] = useState([])
   const [loading, setLoading] = useState(true)
   const [modal, setModal] = useState(null)
@@ -5020,6 +5020,21 @@ const useCreateUkol = (leads, onUkolCreated) => {
 }
 
 // ─── HLAVNÍ APP ───────────────────────────────────────────────────────────────
+class ErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { error: null } }
+  static getDerivedStateFromError(e) { return { error: e } }
+  render() {
+    if (this.state.error) return (
+      <div style={{padding:40,fontFamily:'sans-serif',color:'#333'}}>
+        <h2 style={{color:'#A32D2D'}}>⚠️ Chyba aplikace</h2>
+        <pre style={{background:'#f5f5f3',padding:20,borderRadius:8,fontSize:12,overflow:'auto'}}>{this.state.error?.message}</pre>
+        <button onClick={() => window.location.reload()} style={{marginTop:16,padding:'8px 20px',background:'#534AB7',color:'#fff',border:'none',borderRadius:8,cursor:'pointer'}}>Obnovit stránku</button>
+      </div>
+    )
+    return this.props.children
+  }
+}
+
 export default function App() {
   // AUTH STATE
   const [session, setSession] = useState(null)
@@ -5639,10 +5654,10 @@ export default function App() {
         {tab==='email' && <EmailTemplates industry={userProfile?.industry || 'general'} />}
         {tab==='dokumenty' && <PdfDocuments />}
         {tab==='dashboard' && <Dashboard leads={leads} onOpen={setDetail} industry={userProfile?.industry || 'general'} />}
-        {tab==='ukoly' && <UkolyView leads={leads} onLeadChange={onLeadChange} />}
+        {tab==='ukoly' && <UkolyView leads={leads} onLeadChange={onLeadChange} teamMembers={teamMembers} />}
         {tab==='strategie' && <StrategickyPlan industry={userProfile?.industry || 'general'} />}
         {tab==='pruvodce' && <PruvodceStrategii industry={userProfile?.industry || 'general'} />}
-        {tab==='produkty' && <ProduktyPrehled industry={userProfile?.industry || 'general'} />}
+        {tab==='produkty' && <ProduktyPrehled industry={userProfile?.industry || 'general'} session={session} />}
       </div>
 
       {detail && (
@@ -5664,5 +5679,6 @@ export default function App() {
         />
       )}
     </div>
+    </ErrorBoundary>
   )
 }

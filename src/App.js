@@ -5037,6 +5037,11 @@ export default function App() {
   const [leads, setLeads] = useState([])
   const [loading, setLoading] = useState(false)
   const [tab, setTab] = useState('dashboard')
+
+  const switchTab = (id) => {
+    setTab(id)
+    setDrawerOpen(false)
+  }
   const [teamMembers, setTeamMembers] = useState([])
   const [showTeamModal, setShowTeamModal] = useState(false)
   const [newMemberName, setNewMemberName] = useState('')

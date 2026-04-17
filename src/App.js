@@ -5033,8 +5033,6 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(false)
   const [authMsg, setAuthMsg] = useState('')
   const [userProfile, setUserProfile] = useState(null)
-  const [showPaywall, setShowPaywall] = useState(false)
-  const [stripeLoading, setStripeLoading] = useState(false)
 
   const [leads, setLeads] = useState([])
   const [loading, setLoading] = useState(false)
@@ -5113,23 +5111,9 @@ export default function App() {
     await supabase.auth.signOut()
     setSession(null)
     setUserProfile(null)
-    setShowPaywall(false)
   }
 
-  const doStripeCheckout = async () => {
-    if (!session) return
-    setStripeLoading(true)
-    try {
-      const res = await fetch('/api/stripe-checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: session.user.email, userId: session.user.id })
-      })
-      const { url } = await res.json()
-      if (url) window.location.href = url
-    } catch(e) { console.error(e) }
-    setStripeLoading(false)
-  }
+
 
   // Listen na auth state changes
   useEffect(() => {
@@ -5149,7 +5133,6 @@ export default function App() {
         setUserProfile(data)
         loadTeamMembers(data)
         // Zkontrolovat paywall
-        if (!isTrialActive(data)) setShowPaywall(true)
       } else {
         const trialEnd = new Date()
         trialEnd.setDate(trialEnd.getDate() + 7)
@@ -5423,37 +5406,6 @@ export default function App() {
   )
 
   // PAYWALL SCREEN
-  if (showPaywall) return (
-    <div className="login-wrap">
-      <div className="login-card" style={{maxWidth:460}}>
-        <div className="auth-logo-block">
-          <div className="auth-brand-name">MIKOMI <span>OS</span></div>
-        </div>
-        <div style={{textAlign:'center',padding:'8px 0 16px'}}>
-          <div style={{fontSize:40,marginBottom:12}}>🔐</div>
-          <div style={{fontWeight:700,fontSize:20,marginBottom:8}}>Váš trial vypršel</div>
-          <div style={{fontSize:14,color:'#888',lineHeight:1.7,marginBottom:20}}>
-            Pro pokračování v používání MIKOMI OS aktivujte předplatné.<br/>
-            Všechna vaše data jsou bezpečně uložena a čekají na vás.
-          </div>
-          <div style={{background:'#faf9ff',border:'1px solid #e0dbff',borderRadius:12,padding:'20px',marginBottom:20}}>
-            <div style={{fontSize:36,fontWeight:800,color:'#534AB7',letterSpacing:'-1px'}}>497 Kč<span style={{fontSize:16,fontWeight:400,color:'#888'}}>/měsíc</span></div>
-            <div style={{fontSize:13,color:'#666',marginTop:8}}>
-              ✓ Neomezené leady &nbsp;·&nbsp; ✓ AI asistent &nbsp;·&nbsp; ✓ Všechny funkce
-            </div>
-          </div>
-          <button className="btn-primary" onClick={doStripeCheckout} disabled={stripeLoading}
-            style={{fontSize:16,padding:'14px 32px',borderRadius:10}}>
-            {stripeLoading ? 'Přesměrovávám...' : 'Aktivovat předplatné →'}
-          </button>
-          <div style={{fontSize:12,color:'#aaa',marginTop:12}}>Bezpečná platba přes Stripe · Zrušit kdykoli</div>
-        </div>
-        <button className="auth-link" onClick={doLogout} style={{marginTop:8}}>Odhlásit se</button>
-      </div>
-    </div>
-  )
-
-  const switchTab = (id) => { setTab(id); setDrawerOpen(false) }
 
   return (
     <div className="app-layout">

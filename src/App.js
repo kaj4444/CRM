@@ -5484,15 +5484,15 @@ export default function App() {
               <input placeholder="Hledat..." value={search} onChange={e=>setSearch(e.target.value)} style={{width:160}} />
               <select value={filtrSeg} onChange={e=>setFiltrSeg(e.target.value)}>
                 <option value="">Všechny segmenty</option>
-                {['Přímý klient','Multiplikátor','Finanční sektor (DORA)','Veřejná správa'].map(o=><option key={o}>{o}</option>)}
+                {getIndustryCfg(userProfile?.industry||'general').segmenty.map(o=><option key={o}>{o}</option>)}
               </select>
               <select value={filtrProd} onChange={e=>setFiltrProd(e.target.value)}>
                 <option value="">Všechny produkty</option>
-                {['Review NIS2','Check DORA','Program NIS2','Program DORA','Lorenc','Kyber.testy'].map(o=><option key={o}>{o}</option>)}
+                {getIndustryCfg(userProfile?.industry||'general').produkty.map(o=><option key={o}>{o}</option>)}
               </select>
               <select value={filtrVede} onChange={e=>setFiltrVede(e.target.value)}>
                 <option value="">Všichni</option>
-                {['Karel','Radim','Aleš'].map(o=><option key={o}>{o}</option>)}
+                {teamMembers.map(o=><option key={o}>{o}</option>)}
               </select>
               <button className="btn accent" onClick={() => setModal('new')}>{(userProfile?.industry||'general')==='real-estate' ? '+ Nový klient' : (userProfile?.industry||'general')==='cybersecurity' ? '+ Nový lead' : '+ Nový projekt'}</button>
         <button className="btn" onClick={() => {
@@ -5505,7 +5505,7 @@ export default function App() {
           const blob = new Blob([bom+csv], {type:'text/csv;charset=utf-8'})
           const url = URL.createObjectURL(blob)
           const a = document.createElement('a')
-          a.href = url; a.download = 'riscare-'+new Date().toISOString().slice(0,10)+'.csv'
+          a.href = url; a.download = 'mikomi-leady-'+new Date().toISOString().slice(0,10)+'.csv'
           a.click(); URL.revokeObjectURL(url)
         }}>⬇ Export CSV</button>
             </div>

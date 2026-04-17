@@ -227,7 +227,8 @@ const PRIORITY_OPTIONS = ['Nízká', 'Střední', 'Vysoká', 'Kritická']
 const PRIORITY_COLORS = { 'Nízká':'#185FA5', 'Střední':'#854F0B', 'Vysoká':'#A32D2D', 'Kritická':'#791F1F' }
 const PRIORITY_BG = { 'Nízká':'#E6F1FB', 'Střední':'#FAEEDA', 'Vysoká':'#FCEBEB', 'Kritická':'#F5D5D5' }
 
-const QuickUkolModal = ({ lead, onClose, onSaved }) => {
+const QuickUkolModal = ({ lead, onClose, onSaved, teamMembers }) => {
+  const activeTeam = (teamMembers && teamMembers.length > 0) ? teamMembers : ['Karel','Radim','Aleš']
   const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1)
   const [form, setForm] = useState({
     nazev: '',
@@ -894,6 +895,7 @@ Piš česky. Buď konkrétní a personální — vyhni se generickým frázím. 
           lead={lead}
           onClose={() => setShowUkolModal(false)}
           onSaved={() => {}}
+          teamMembers={tmProps}
         />
       )}
     </div>
